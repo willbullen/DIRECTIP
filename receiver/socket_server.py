@@ -66,11 +66,24 @@ class SatelliteSocketServer:
                 
                 payload = data.decode('utf-8', errors='replace')
                 
-                # Try to decode EUCAWS payload (30 bytes)
+                # Try to decode EUCAWS payload
                 eucaws_data = {}
-                if len(data) == 30:
+                eucaws_payload = None
+                
+                # Check if we have a payload from Iridium parsing (IEI 2)
+                if parsed.get('payload_hex'):
+                    # Extract the raw payload bytes from hex
+                    eucaws_payload = bytes.fromhex(parsed['payload_hex'])
+                    logger.info(f"[Socket] Extracted payload from DirectIP: {len(eucaws_payload)} bytes")
+                elif len(data) == 30:
+                    # Raw 30-byte EUCAWS payload (no DirectIP wrapper)
+                    eucaws_payload = data
+                    logger.info(f"[Socket] Raw 30-byte EUCAWS payload detected")
+                
+                # Decode EUCAWS if we have a 30-byte payload
+                if eucaws_payload and len(eucaws_payload) == 30:
                     try:
-                        eucaws_data = decode_eucaws_payload(data)
+                        eucaws_data = decode_eucaws_payload(eucaws_payload)
                         logger.info(f"[Socket] EUCAWS decoded: {eucaws_data.get('is_decoded')}")
                         
                         # Publish to MQTT if successfully decoded
@@ -82,6 +95,9 @@ class SatelliteSocketServer:
                                 logger.error(f"[Socket] MQTT publish error: {mqtt_error}")
                     except Exception as e:
                         logger.error(f"[Socket] EUCAWS decode error: {e}")
+                else:
+                    if eucaws_payload:
+                        logger.warning(f"[Socket] Payload size {len(eucaws_payload)} bytes, expected 30 for EUCAWS")
                 
                 # Save to database with parsed fields
                 SatelliteData.objects.create(
