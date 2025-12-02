@@ -5,24 +5,25 @@ from .models import SatelliteData
 
 
 def dashboard(request):
-    """Main dashboard view with Iridium SBD parsed data"""
+    """Main dashboard view with EUCAWS weather data"""
     # Get latest packets
-    packets = SatelliteData.objects.all()[:50]  # Latest 50 packets
+    recent_packets = SatelliteData.objects.all().order_by('-timestamp')[:50]
     
     # Get statistics
     total_packets = SatelliteData.objects.count()
-    parsed_packets = SatelliteData.objects.filter(is_parsed=True).count()
+    eucaws_decoded = SatelliteData.objects.filter(is_eucaws_decoded=True).count()
     unique_imeis = SatelliteData.objects.filter(imei__isnull=False).values('imei').distinct().count()
-    gps_packets = SatelliteData.objects.filter(latitude__isnull=False, longitude__isnull=False).count()
+    
+    stats = {
+        'total_packets': total_packets,
+        'eucaws_decoded': eucaws_decoded,
+        'unique_imeis': unique_imeis,
+    }
     
     context = {
-        'packets': packets,
-        'total_packets': total_packets,
-        'parsed_packets': parsed_packets,
-        'unique_imeis': unique_imeis,
-        'gps_packets': gps_packets,
-        'listening_port': 7777,
-        'server_ip': '138.68.158.9',
+        'recent_packets': recent_packets,
+        'stats': stats,
+        'page': 1,
     }
     
     return render(request, 'receiver/dashboard.html', context)

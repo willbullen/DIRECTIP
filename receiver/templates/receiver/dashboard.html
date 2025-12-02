@@ -1,53 +1,78 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIRECTIP - Iridium Satellite Data Receiver</title>
+    <title>DIRECTIP - EUCAWS Satellite Data Receiver</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        border: "hsl(217.2 32.6% 17.5%)",
-                        background: "hsl(222.2 84% 4.9%)",
-                        foreground: "hsl(210 40% 98%)",
-                        primary: "hsl(217.2 91.2% 59.8%)",
-                        'primary-foreground': "hsl(222.2 47.4% 11.2%)",
-                        muted: {
-                            DEFAULT: "hsl(217.2 32.6% 17.5%)",
-                            foreground: "hsl(215 20.2% 65.1%)",
-                        },
-                    }
-                }
-            }
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
         }
         
-        // Auto-refresh every 5 seconds
-        setTimeout(function(){
-            location.reload();
-        }, 5000);
-    </script>
+        .card {
+            background: rgba(26, 31, 58, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .weather-icon {
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+        }
+        
+        .data-row:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .badge-warning {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .badge-info {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+    </style>
 </head>
-<body class="bg-background text-foreground min-h-screen">
+<body class="min-h-screen text-gray-100">
     <!-- Header -->
-    <header class="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div class="container mx-auto px-4 py-4">
+    <header class="border-b border-blue-900/30 bg-gray-900/50 backdrop-blur-sm">
+        <div class="container mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-primary">DIRECTIP</h1>
-                    <p class="text-sm text-muted-foreground">Iridium SBD Satellite Data Receiver</p>
+                    <h1 class="text-2xl font-bold text-blue-400">DIRECTIP</h1>
+                    <p class="text-sm text-gray-400">EUCAWS Satellite Data Receiver</p>
                 </div>
-                <div class="flex gap-4">
+                <div class="flex items-center space-x-4">
                     <div class="text-right">
-                        <p class="text-xs text-muted-foreground">Server IP</p>
-                        <p class="text-sm font-mono">{{ server_ip }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-muted-foreground">Socket Port</p>
-                        <p class="text-sm font-mono text-green-400">7777</p>
+                        <p class="text-xs text-gray-400">Server Status</p>
+                        <p class="text-sm font-semibold text-green-400">● Online</p>
                     </div>
                 </div>
             </div>
@@ -55,131 +80,155 @@
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="rounded-lg border border-border bg-card p-6">
-                <div class="flex flex-col space-y-1.5">
-                    <h3 class="text-sm font-medium text-muted-foreground">Total Packets</h3>
-                    <p class="text-3xl font-bold">{{ total_packets }}</p>
+    <main class="container mx-auto px-6 py-8">
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-400 mb-1">Total Packets</p>
+                        <p class="text-3xl font-bold text-blue-400">{{ stats.total_packets }}</p>
+                    </div>
+                    <svg class="w-12 h-12 text-blue-500 weather-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+                    </svg>
                 </div>
             </div>
-            
-            <div class="rounded-lg border border-border bg-card p-6">
-                <div class="flex flex-col space-y-1.5">
-                    <h3 class="text-sm font-medium text-muted-foreground">Parsed Successfully</h3>
-                    <p class="text-3xl font-bold text-green-400">{{ parsed_packets }}</p>
+
+            <div class="stat-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-400 mb-1">EUCAWS Decoded</p>
+                        <p class="text-3xl font-bold text-green-400">{{ stats.eucaws_decoded }}</p>
+                    </div>
+                    <svg class="w-12 h-12 text-green-500 weather-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                    </svg>
                 </div>
             </div>
-            
-            <div class="rounded-lg border border-border bg-card p-6">
-                <div class="flex flex-col space-y-1.5">
-                    <h3 class="text-sm font-medium text-muted-foreground">Unique IMEIs</h3>
-                    <p class="text-3xl font-bold text-blue-400">{{ unique_imeis }}</p>
+
+            <div class="stat-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-400 mb-1">Unique Stations</p>
+                        <p class="text-3xl font-bold text-purple-400">{{ stats.unique_imeis }}</p>
+                    </div>
+                    <svg class="w-12 h-12 text-purple-500 weather-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                    </svg>
                 </div>
             </div>
-            
-            <div class="rounded-lg border border-border bg-card p-6">
-                <div class="flex flex-col space-y-1.5">
-                    <h3 class="text-sm font-medium text-muted-foreground">With GPS Data</h3>
-                    <p class="text-3xl font-bold text-purple-400">{{ gps_packets }}</p>
+
+            <div class="stat-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-400 mb-1">Listening Port</p>
+                        <p class="text-3xl font-bold text-yellow-400">7777</p>
+                    </div>
+                    <svg class="w-12 h-12 text-yellow-500 weather-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
                 </div>
             </div>
         </div>
 
-        <!-- Data Table -->
-        <div class="rounded-lg border border-border bg-card">
-            <div class="p-6 border-b border-border">
-                <h2 class="text-xl font-semibold">Recent Satellite Transmissions</h2>
-                <p class="text-sm text-muted-foreground mt-1">Auto-refreshes every 5 seconds</p>
+        <!-- Recent Observations -->
+        <div class="card rounded-xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-blue-300">Recent EUCAWS Observations</h2>
+                <span class="text-sm text-gray-400">Auto-refresh every 5s</span>
             </div>
-            
+
             <div class="overflow-x-auto">
                 <table class="w-full">
-                    <thead class="border-b border-border bg-muted/50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Timestamp</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">IMEI</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">MOMSN</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">GPS Location</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Decoded Payload</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Source</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                    <thead>
+                        <tr class="border-b border-blue-900/30 text-left">
+                            <th class="pb-3 text-sm font-semibold text-gray-400">Timestamp</th>
+                            <th class="pb-3 text-sm font-semibold text-gray-400">IMEI</th>
+                            <th class="pb-3 text-sm font-semibold text-gray-400">Wind</th>
+                            <th class="pb-3 text-sm font-semibold text-gray-400">Temperature</th>
+                            <th class="pb-3 text-sm font-semibold text-gray-400">Pressure</th>
+                            <th class="pb-3 text-sm font-semibold text-gray-400">Humidity</th>
+                            <th class="pb-3 text-sm font-semibold text-gray-400">GPS</th>
+                            <th class="pb-3 text-sm font-semibold text-gray-400">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-border">
-                        {% for packet in packets %}
-                        <tr class="hover:bg-muted/50 transition-colors">
-                            <td class="px-4 py-3 text-sm font-mono">
+                    <tbody>
+                        {% for packet in recent_packets %}
+                        <tr class="border-b border-blue-900/20 data-row transition-colors">
+                            <td class="py-4 text-sm text-gray-300">
                                 {{ packet.timestamp|date:"Y-m-d H:i:s" }}
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="py-4">
                                 {% if packet.imei %}
-                                <span class="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-500/20">
-                                    {{ packet.imei }}
-                                </span>
+                                <span class="badge badge-info">{{ packet.imei }}</span>
                                 {% else %}
-                                <span class="text-muted-foreground text-xs">No IMEI</span>
+                                <span class="text-gray-500 text-sm">N/A</span>
                                 {% endif %}
                             </td>
-                            <td class="px-4 py-3 text-sm">
-                                {% if packet.momsn %}
-                                <span class="font-mono">{{ packet.momsn }}</span>
-                                {% else %}
-                                <span class="text-muted-foreground">-</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-4 py-3 text-sm">
-                                {% if packet.latitude and packet.longitude %}
-                                <div class="space-y-1">
-                                    <div class="font-mono text-xs">
-                                        <span class="text-muted-foreground">Lat:</span> {{ packet.latitude|floatformat:6 }}
-                                    </div>
-                                    <div class="font-mono text-xs">
-                                        <span class="text-muted-foreground">Lon:</span> {{ packet.longitude|floatformat:6 }}
-                                    </div>
-                                    {% if packet.cep_radius %}
-                                    <div class="text-xs text-muted-foreground">
-                                        ±{{ packet.cep_radius }}m
-                                    </div>
+                            <td class="py-4 text-sm">
+                                {% if packet.wind_speed_knots %}
+                                <div class="text-gray-300">
+                                    <span class="font-semibold">{{ packet.wind_speed_knots|floatformat:1 }}</span> kts
+                                    {% if packet.wind_direction %}
+                                    <br><span class="text-xs text-gray-400">{{ packet.wind_direction|floatformat:0 }}°</span>
                                     {% endif %}
                                 </div>
                                 {% else %}
-                                <span class="text-muted-foreground">No GPS</span>
+                                <span class="text-gray-500">—</span>
                                 {% endif %}
                             </td>
-                            <td class="px-4 py-3 text-sm max-w-xs">
-                                {% if packet.decoded_payload %}
-                                <div class="truncate font-mono text-xs">
-                                    {{ packet.decoded_payload }}
+                            <td class="py-4 text-sm">
+                                {% if packet.air_temperature %}
+                                <div class="text-gray-300">
+                                    <span class="font-semibold">{{ packet.air_temperature|floatformat:1 }}</span>°C
+                                    {% if packet.sea_temperature %}
+                                    <br><span class="text-xs text-gray-400">Sea: {{ packet.sea_temperature|floatformat:1 }}°C</span>
+                                    {% endif %}
                                 </div>
                                 {% else %}
-                                <span class="text-muted-foreground text-xs">{{ packet.payload|truncatechars:50 }}</span>
+                                <span class="text-gray-500">—</span>
                                 {% endif %}
                             </td>
-                            <td class="px-4 py-3 text-sm">
-                                <div class="font-mono text-xs">
-                                    {{ packet.source_ip }}:{{ packet.source_port }}
-                                </div>
-                                <div class="text-xs text-muted-foreground">
-                                    {{ packet.payload_size }} bytes
-                                </div>
-                            </td>
-                            <td class="px-4 py-3">
-                                {% if packet.is_parsed %}
-                                <span class="inline-flex items-center rounded-md bg-green-500/10 px-2 py-1 text-xs font-medium text-green-400 ring-1 ring-inset ring-green-500/20">
-                                    ✓ Parsed
-                                </span>
+                            <td class="py-4 text-sm">
+                                {% if packet.barometric_pressure %}
+                                <span class="text-gray-300 font-semibold">{{ packet.barometric_pressure|floatformat:1 }}</span>
+                                <span class="text-xs text-gray-400">hPa</span>
                                 {% else %}
-                                <span class="inline-flex items-center rounded-md bg-yellow-500/10 px-2 py-1 text-xs font-medium text-yellow-400 ring-1 ring-inset ring-yellow-500/20">
-                                    Raw
-                                </span>
+                                <span class="text-gray-500">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-4 text-sm">
+                                {% if packet.relative_humidity %}
+                                <span class="text-gray-300 font-semibold">{{ packet.relative_humidity|floatformat:0 }}</span>
+                                <span class="text-xs text-gray-400">%</span>
+                                {% else %}
+                                <span class="text-gray-500">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-4 text-sm">
+                                {% if packet.latitude and packet.longitude %}
+                                <div class="text-gray-300 text-xs">
+                                    {{ packet.latitude|floatformat:4 }},<br>
+                                    {{ packet.longitude|floatformat:4 }}
+                                </div>
+                                {% else %}
+                                <span class="text-gray-500">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-4">
+                                {% if packet.is_eucaws_decoded %}
+                                <span class="badge badge-success">✓ Decoded</span>
+                                {% elif packet.is_parsed %}
+                                <span class="badge badge-warning">⚠ Partial</span>
+                                {% else %}
+                                <span class="badge badge-info">Raw</span>
                                 {% endif %}
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-muted-foreground">
+                            <td colspan="8" class="py-8 text-center text-gray-500">
                                 No satellite data received yet. Listening on port 7777...
                             </td>
                         </tr>
@@ -187,15 +236,18 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <!-- Pagination -->
-            {% if packets %}
-            <div class="p-4 border-t border-border flex items-center justify-between">
-                <div class="text-sm text-muted-foreground">
-                    Showing {{ packets|length }} of {{ total_packets }} packets
+            {% if recent_packets %}
+            <div class="mt-6 flex items-center justify-between text-sm text-gray-400">
+                <div>
+                    Showing {{ recent_packets|length }} of {{ stats.total_packets }} packets
                 </div>
-                <div class="text-xs text-muted-foreground">
-                    Page refreshes automatically every 5 seconds
+                <div class="flex space-x-2">
+                    <a href="?page=1" class="px-3 py-1 rounded bg-blue-900/30 hover:bg-blue-900/50 transition-colors">First</a>
+                    <a href="?page={{ page|add:-1 }}" class="px-3 py-1 rounded bg-blue-900/30 hover:bg-blue-900/50 transition-colors">Previous</a>
+                    <span class="px-3 py-1">Page {{ page }}</span>
+                    <a href="?page={{ page|add:1 }}" class="px-3 py-1 rounded bg-blue-900/30 hover:bg-blue-900/50 transition-colors">Next</a>
                 </div>
             </div>
             {% endif %}
@@ -203,13 +255,21 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-border mt-12">
-        <div class="container mx-auto px-4 py-6">
-            <div class="text-center text-sm text-muted-foreground">
-                <p>DIRECTIP Satellite Data Receiver &copy; 2024</p>
-                <p class="mt-1">Iridium SBD DirectIP Protocol Parser Active</p>
+    <footer class="border-t border-blue-900/30 bg-gray-900/50 backdrop-blur-sm mt-12">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between text-sm text-gray-400">
+                <p>DIRECTIP Satellite Data Receiver © 2024</p>
+                <p>Server IP: 138.68.158.9 | Port: 3011 (Web) | Port: 7777 (Socket)</p>
             </div>
         </div>
     </footer>
+
+    <!-- Auto-refresh script -->
+    <script>
+        // Auto-refresh every 5 seconds
+        setTimeout(function() {
+            location.reload();
+        }, 5000);
+    </script>
 </body>
 </html>

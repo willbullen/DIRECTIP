@@ -5,6 +5,7 @@ from django.utils import timezone
 from .models import SatelliteData
 from .iridium_parser import parse_iridium_message, extract_imei_simple
 from .eucaws_decoder import decode_eucaws_payload
+from .mqtt_publisher import publish_eucaws_to_mqtt
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,14 @@ class SatelliteSocketServer:
                     try:
                         eucaws_data = decode_eucaws_payload(data)
                         logger.info(f"[Socket] EUCAWS decoded: {eucaws_data.get('is_decoded')}")
+                        
+                        # Publish to MQTT if successfully decoded
+                        if eucaws_data.get('is_decoded') and parsed.get('imei'):
+                            try:
+                                publish_eucaws_to_mqtt(parsed.get('imei'), eucaws_data)
+                                logger.info(f"[Socket] Published EUCAWS data to MQTT for IMEI {parsed.get('imei')}")
+                            except Exception as mqtt_error:
+                                logger.error(f"[Socket] MQTT publish error: {mqtt_error}")
                     except Exception as e:
                         logger.error(f"[Socket] EUCAWS decode error: {e}")
                 
