@@ -1,46 +1,17 @@
 services:
-  # PostgreSQL Database
-  db:
-    image: postgres:16-alpine
-    container_name: directip-db
-    environment:
-      POSTGRES_DB: directip
-      POSTGRES_USER: directip
-      POSTGRES_PASSWORD: directip_password
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    networks:
-      - directip-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U directip"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Django Application
   app:
     build: .
     container_name: directip-app
     environment:
-      - DB_NAME=directip
-      - DB_USER=directip
-      - DB_PASSWORD=directip_password
-      - DB_HOST=db
-      - DB_PORT=5432
       - DJANGO_SETTINGS_MODULE=directip_project.settings
+      - USE_SQLITE=1
     ports:
       - "3010:3010"  # Web dashboard
       - "7777:7777"  # Socket server
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - directip-network
+    volumes:
+      - app_data:/app/data
     restart: unless-stopped
 
 volumes:
-  db_data:
-
-networks:
-  directip-network:
-    driver: bridge
+  app_data:

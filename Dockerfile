@@ -8,10 +8,7 @@ ENV DJANGO_SETTINGS_MODULE=directip_project.settings
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
+# No additional system dependencies needed for SQLite
 
 # Install Python dependencies
 COPY requirements.txt /app/
@@ -20,12 +17,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project files
 COPY . /app/
 
+# Create data directory for SQLite
+RUN mkdir -p /app/data
+
 # Collect static files
 RUN python manage.py collectstatic --noinput || true
 
-# Expose port
-EXPOSE 3010
+# Expose ports
+EXPOSE 3010 7777
 
 # Run migrations and start server
 CMD python manage.py migrate && \
-    gunicorn directip_project.wsgi:application --bind 0.0.0.0:3010 --workers 3
+    gunicorn directip_project.wsgi:application --bind 0.0.0.0:3010 --workers 3 --timeout 120
