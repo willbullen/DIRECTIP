@@ -28,7 +28,7 @@ cd DIRECTIP
 
 # Configure firewall
 echo "Configuring firewall..."
-ufw allow 3010/tcp  # Web dashboard
+ufw allow 3011/tcp  # Web dashboard
 ufw allow 7777/tcp  # Socket server
 
 # Build and start
@@ -49,7 +49,7 @@ docker compose logs --tail=50 app
 
 echo ""
 echo "=== Deployment Complete ==="
-echo "Dashboard: http://$(hostname -I | awk '{print $1}'):3010"
+echo "Dashboard: http://$(hostname -I | awk '{print $1}'):3011"
 echo "Socket Server: Port 7777"
 echo ""
 echo "Test with: echo 'TEST DATA' | nc $(hostname -I | awk '{print $1}') 7777"

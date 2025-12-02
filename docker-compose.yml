@@ -7,7 +7,7 @@ services:
       - DJANGO_SETTINGS_MODULE=directip_project.settings
       - USE_SQLITE=1
     ports:
-      - "3010:3010"  # Web dashboard
+      - "3011:3011"  # Web dashboard
       - "7777:7777"  # Socket server
     volumes:
       - app_data:/app/data

@@ -24,8 +24,8 @@ RUN mkdir -p /app/data
 RUN python manage.py collectstatic --noinput || true
 
 # Expose ports
-EXPOSE 3010 7777
+EXPOSE 3011 7777
 
 # Run migrations and start server
 CMD python manage.py migrate && \
-    gunicorn directip_project.wsgi:application --bind 0.0.0.0:3010 --workers 3 --timeout 120
+    gunicorn directip_project.wsgi:application --bind 0.0.0.0:3011 --workers 3 --timeout 120
