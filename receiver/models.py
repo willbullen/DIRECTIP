@@ -33,6 +33,18 @@ class SatelliteData(models.Model):
     is_parsed = models.BooleanField(default=False)
     parse_error = models.TextField(null=True, blank=True)
     
+    # EUCAWS weather station fields
+    eucaws_timestamp = models.DateTimeField(null=True, blank=True, help_text="Timestamp from EUCAWS payload")
+    wind_speed_ms = models.FloatField(null=True, blank=True, help_text="Wind speed in m/s")
+    wind_speed_knots = models.FloatField(null=True, blank=True, help_text="Wind speed in knots")
+    wind_direction = models.FloatField(null=True, blank=True, help_text="Wind direction in degrees")
+    air_temperature = models.FloatField(null=True, blank=True, help_text="Air temperature in °C")
+    sea_temperature = models.FloatField(null=True, blank=True, help_text="Sea temperature in °C")
+    barometric_pressure = models.FloatField(null=True, blank=True, help_text="Pressure in hPa")
+    relative_humidity = models.FloatField(null=True, blank=True, help_text="Humidity in %")
+    is_eucaws_decoded = models.BooleanField(default=False)
+    eucaws_decode_error = models.TextField(null=True, blank=True)
+    
     class Meta:
         ordering = ['-timestamp']
         verbose_name = 'Satellite Data Packet'

@@ -4,6 +4,7 @@ import logging
 from django.utils import timezone
 from .models import SatelliteData
 from .iridium_parser import parse_iridium_message, extract_imei_simple
+from .eucaws_decoder import decode_eucaws_payload
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,15 @@ class SatelliteSocketServer:
                 
                 payload = data.decode('utf-8', errors='replace')
                 
+                # Try to decode EUCAWS payload (30 bytes)
+                eucaws_data = {}
+                if len(data) == 30:
+                    try:
+                        eucaws_data = decode_eucaws_payload(data)
+                        logger.info(f"[Socket] EUCAWS decoded: {eucaws_data.get('is_decoded')}")
+                    except Exception as e:
+                        logger.error(f"[Socket] EUCAWS decode error: {e}")
+                
                 # Save to database with parsed fields
                 SatelliteData.objects.create(
                     source_ip=address[0],
@@ -78,13 +88,24 @@ class SatelliteSocketServer:
                     momsn=parsed.get('momsn'),
                     mtmsn=parsed.get('mtmsn'),
                     session_time=parsed.get('session_time'),
-                    latitude=parsed.get('latitude'),
-                    longitude=parsed.get('longitude'),
+                    latitude=parsed.get('latitude') or eucaws_data.get('latitude'),
+                    longitude=parsed.get('longitude') or eucaws_data.get('longitude'),
                     cep_radius=parsed.get('cep_radius'),
                     decoded_payload=parsed.get('decoded_payload'),
                     payload_hex=parsed.get('payload_hex'),
                     is_parsed=parsed.get('is_parsed', False),
                     parse_error=parsed.get('parse_error'),
+                    # EUCAWS weather fields
+                    eucaws_timestamp=eucaws_data.get('timestamp'),
+                    wind_speed_ms=eucaws_data.get('wind_speed_ms'),
+                    wind_speed_knots=eucaws_data.get('wind_speed_knots'),
+                    wind_direction=eucaws_data.get('wind_direction'),
+                    air_temperature=eucaws_data.get('air_temperature'),
+                    sea_temperature=eucaws_data.get('sea_temperature'),
+                    barometric_pressure=eucaws_data.get('barometric_pressure'),
+                    relative_humidity=eucaws_data.get('relative_humidity'),
+                    is_eucaws_decoded=eucaws_data.get('is_decoded', False),
+                    eucaws_decode_error=eucaws_data.get('decode_error'),
                 )
                 
                 logger.info(f"[Socket] Received {len(data)} bytes from {address[0]}:{address[1]}")
