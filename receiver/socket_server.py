@@ -1,0 +1,105 @@
+import socket
+import threading
+import logging
+from django.utils import timezone
+from .models import SatelliteData
+
+logger = logging.getLogger(__name__)
+
+
+class SatelliteSocketServer:
+    """TCP Socket server to receive satellite data on port 7777"""
+    
+    def __init__(self, host='0.0.0.0', port=7777):
+        self.host = host
+        self.port = port
+        self.server_socket = None
+        self.running = False
+        
+    def start(self):
+        """Start the TCP socket server"""
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        
+        try:
+            self.server_socket.bind((self.host, self.port))
+            self.server_socket.listen(5)
+            self.running = True
+            logger.info(f"[Socket] TCP server listening on {self.host}:{self.port}")
+            
+            while self.running:
+                try:
+                    client_socket, address = self.server_socket.accept()
+                    # Handle each client in a separate thread
+                    client_thread = threading.Thread(
+                        target=self.handle_client,
+                        args=(client_socket, address)
+                    )
+                    client_thread.daemon = True
+                    client_thread.start()
+                except Exception as e:
+                    if self.running:
+                        logger.error(f"[Socket] Error accepting connection: {e}")
+                        
+        except Exception as e:
+            logger.error(f"[Socket] Server error: {e}")
+        finally:
+            if self.server_socket:
+                self.server_socket.close()
+    
+    def handle_client(self, client_socket, address):
+        """Handle incoming client connection and data"""
+        try:
+            # Receive data from client
+            data = client_socket.recv(4096)
+            
+            if data:
+                payload = data.decode('utf-8', errors='ignore')
+                
+                # Save to database
+                SatelliteData.objects.create(
+                    source_ip=address[0],
+                    source_port=address[1],
+                    payload=payload,
+                    payload_size=len(data),
+                    timestamp=timezone.now()
+                )
+                
+                logger.info(f"[Socket] Received {len(data)} bytes from {address[0]}:{address[1]}")
+                
+        except Exception as e:
+            logger.error(f"[Socket] Error handling client {address}: {e}")
+        finally:
+            client_socket.close()
+    
+    def stop(self):
+        """Stop the socket server"""
+        self.running = False
+        if self.server_socket:
+            self.server_socket.close()
+        logger.info("[Socket] Server stopped")
+
+
+# Global server instance
+_server_instance = None
+
+
+def start_socket_server():
+    """Start the socket server in a background thread"""
+    global _server_instance
+    
+    if _server_instance is None:
+        _server_instance = SatelliteSocketServer()
+        server_thread = threading.Thread(target=_server_instance.start)
+        server_thread.daemon = True
+        server_thread.start()
+        logger.info("[Socket] Background server thread started")
+
+
+def stop_socket_server():
+    """Stop the socket server"""
+    global _server_instance
+    
+    if _server_instance:
+        _server_instance.stop()
+        _server_instance = None

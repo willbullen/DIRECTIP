@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIRECTIP - Satellite Data Reception System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(217.2 32.6% 17.5%)",
+                        input: "hsl(217.2 32.6% 17.5%)",
+                        ring: "hsl(212.7 26.8% 83.9%)",
+                        background: "hsl(222.2 84% 4.9%)",
+                        foreground: "hsl(210 40% 98%)",
+                        primary: {
+                            DEFAULT: "hsl(210 40% 98%)",
+                            foreground: "hsl(222.2 47.4% 11.2%)",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(217.2 32.6% 17.5%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(217.2 32.6% 17.5%)",
+                            foreground: "hsl(215 20.2% 65.1%)",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(217.2 32.6% 17.5%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        card: {
+                            DEFAULT: "hsl(222.2 84% 4.9%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: hsl(222.2 84% 4.9%);
+            color: hsl(210 40% 98%);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">DIRECTIP</h1>
+            <p class="text-muted-foreground">Satellite Data Reception System</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total Packets Card -->
+            <div class="rounded-lg border border-border bg-card p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-medium text-muted-foreground">Total Packets</h3>
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div class="text-3xl font-bold" id="total-packets">{{ total_packets }}</div>
+                <p class="text-xs text-muted-foreground mt-1">All time received</p>
+            </div>
+
+            <!-- Listening Port Card -->
+            <div class="rounded-lg border border-border bg-card p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-medium text-muted-foreground">Listening Port</h3>
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <div class="text-3xl font-bold">{{ listening_port }}</div>
+                <div class="mt-1">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-500">
+                        Active
+                    </span>
+                </div>
+            </div>
+
+            <!-- Server IP Card -->
+            <div class="rounded-lg border border-border bg-card p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-medium text-muted-foreground">Server IP</h3>
+                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+                    </svg>
+                </div>
+                <div class="text-2xl font-bold">{{ server_ip }}</div>
+                <p class="text-xs text-muted-foreground mt-1">DigitalOcean Droplet</p>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="rounded-lg border border-border bg-card">
+            <div class="p-6 border-b border-border">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-semibold">Received Data Packets</h2>
+                        <p class="text-sm text-muted-foreground">Real-time satellite data reception log</p>
+                    </div>
+                    <button onclick="refreshData()" class="inline-flex items-center px-4 py-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="data-container" class="p-6">
+                <!-- Empty state -->
+                <div id="empty-state" class="text-center py-12">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium mb-2">No data received yet</h3>
+                    <p class="text-sm text-muted-foreground">Waiting for satellite data on port 7777...</p>
+                </div>
+
+                <!-- Data table (hidden initially) -->
+                <div id="data-table" class="hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-border">
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Timestamp</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Source IP</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Port</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Payload</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Size</th>
+                                </tr>
+                            </thead>
+                            <tbody id="packets-tbody">
+                                <!-- Rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="mt-4 flex items-center justify-between">
+                        <div class="text-sm text-muted-foreground">
+                            Page <span id="current-page">1</span> of <span id="total-pages">1</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="previousPage()" id="prev-btn" class="px-3 py-1 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                Previous
+                            </button>
+                            <button onclick="nextPage()" id="next-btn" class="px-3 py-1 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/stats/');
+                const data = await response.json();
+                document.getElementById('total-packets').textContent = data.total_packets;
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+            }
+        }
+
+        async function fetchPackets(page = 1) {
+            try {
+                const response = await fetch(`/api/packets/?page=${page}&per_page=20`);
+                const data = await response.json();
+                
+                currentPage = data.page;
+                totalPages = data.total_pages;
+                
+                if (data.packets.length === 0) {
+                    document.getElementById('empty-state').classList.remove('hidden');
+                    document.getElementById('data-table').classList.add('hidden');
+                } else {
+                    document.getElementById('empty-state').classList.add('hidden');
+                    document.getElementById('data-table').classList.remove('hidden');
+                    
+                    const tbody = document.getElementById('packets-tbody');
+                    tbody.innerHTML = data.packets.map(packet => `
+                        <tr class="border-b border-border hover:bg-muted/50 transition-colors">
+                            <td class="py-3 px-4 text-sm">${new Date(packet.timestamp).toLocaleString()}</td>
+                            <td class="py-3 px-4 text-sm font-mono">${packet.source_ip}</td>
+                            <td class="py-3 px-4 text-sm">${packet.source_port}</td>
+                            <td class="py-3 px-4 text-sm font-mono text-muted-foreground">${packet.payload}</td>
+                            <td class="py-3 px-4 text-sm">${packet.payload_size} bytes</td>
+                        </tr>
+                    `).join('');
+                    
+                    document.getElementById('current-page').textContent = currentPage;
+                    document.getElementById('total-pages').textContent = totalPages;
+                    
+                    document.getElementById('prev-btn').disabled = currentPage === 1;
+                    document.getElementById('next-btn').disabled = currentPage === totalPages;
+                }
+            } catch (error) {
+                console.error('Error fetching packets:', error);
+            }
+        }
+
+        function refreshData() {
+            fetchStats();
+            fetchPackets(currentPage);
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                fetchPackets(currentPage - 1);
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                fetchPackets(currentPage + 1);
+            }
+        }
+
+        // Initial load
+        refreshData();
+
+        // Auto-refresh every 5 seconds
+        setInterval(refreshData, 5000);
+    </script>
+</body>
+</html>
