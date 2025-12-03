@@ -594,6 +594,9 @@
     </div>
     
     <script>
+        // Get CSRF token from Django template
+        const csrfToken = '{{ csrf_token }}';
+        
         // Auto-refresh with AJAX
         let refreshTimer = null;
         let refreshInterval = 30;
@@ -685,7 +688,7 @@
                 fetch(`/api/publish/${packetId}/`, {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
+                        'X-CSRFToken': csrfToken,
                         'Content-Type': 'application/json'
                     }
                 })
