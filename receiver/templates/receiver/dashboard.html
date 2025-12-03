@@ -499,7 +499,7 @@
                                 <th>Pressure</th>
                                 <th>Sea Temp</th>
                                 <th>Air Temp</th>
-                                <th>GPS</th>
+                                <th>MQTT Topic</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -535,9 +535,9 @@
                                     <span style="color: hsl(var(--muted-foreground));">—</span>
                                     {% endif %}
                                 </td>
-                                <td style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">
-                                    {% if packet.latitude and packet.longitude %}
-                                    {{ packet.latitude|floatformat:4 }}, {{ packet.longitude|floatformat:4 }}
+                                <td style="font-size: 0.6875rem; font-family: monospace; color: hsl(var(--muted-foreground));">
+                                    {% if packet.mqtt_topic %}
+                                    {{ packet.mqtt_topic }}
                                     {% else %}
                                     —
                                     {% endif %}

@@ -21,10 +21,10 @@ class EUCAWSMQTTPublisher:
     """
     
     def __init__(self):
-        self.broker_host = getattr(settings, 'MQTT_BROKER_HOST', 'mqtt.metvalentia.com')
+        self.broker_host = getattr(settings, 'MQTT_BROKER_HOST', '138.68.158.9')
         self.broker_port = getattr(settings, 'MQTT_BROKER_PORT', 1883)
-        self.username = getattr(settings, 'MQTT_USERNAME', 'valentia')
-        self.password = getattr(settings, 'MQTT_PASSWORD', 'valentia_mqtt_2024')
+        self.username = getattr(settings, 'MQTT_USERNAME', 'admin')
+        self.password = getattr(settings, 'MQTT_PASSWORD', 'B@ff1ed!2025')
         self.qos = 1
         self.client = None
         self.connected = False
@@ -86,9 +86,8 @@ class EUCAWSMQTTPublisher:
             return False
             
         try:
-            # Use IMEI as station_id (e.g., eucaws_300234068471160)
-            station_id = f"eucaws_{imei}" if imei else "eucaws_unknown"
-            topic = f"valentia/eucaws/{station_id}/observation"
+            # Use IMEI directly in topic: valentia/eucaws/{IMEI}/telemetry
+            topic = f"valentia/eucaws/{imei}/telemetry" if imei else "valentia/eucaws/unknown/telemetry"
             
             # Build MQTT payload matching MIDDLEMIN format
             payload = {
@@ -131,10 +130,10 @@ class EUCAWSMQTTPublisher:
             
             if result.rc == mqtt.MQTT_ERR_SUCCESS:
                 logger.info(f"[MQTT] Published to {topic}: {len(payload)} fields")
-                return True
+                return {'success': True, 'topic': topic}
             else:
                 logger.error(f"[MQTT] Publish failed with code {result.rc}")
-                return False
+                return {'success': False, 'topic': topic}
                 
         except Exception as e:
             logger.error(f"[MQTT] Error publishing observation: {e}")

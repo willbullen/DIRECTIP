@@ -1,0 +1,6 @@
+# After deploying, run this command on your server to add the mqtt_topic field:
+
+sudo docker compose exec app python manage.py makemigrations
+sudo docker compose exec app python manage.py migrate
+
+# This will add the mqtt_topic field to the SatelliteData model

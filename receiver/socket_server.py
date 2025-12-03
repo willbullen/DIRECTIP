@@ -89,10 +89,13 @@ class SatelliteSocketServer:
                         logger.info(f"[Socket] EUCAWS decoded: {eucaws_data.get('is_decoded')}")
                         
                         # Publish to MQTT if successfully decoded
+                        mqtt_topic = None
                         if eucaws_data.get('is_decoded') and parsed.get('imei'):
                             try:
-                                publish_eucaws_to_mqtt(parsed.get('imei'), eucaws_data)
-                                logger.info(f"[Socket] Published EUCAWS data to MQTT for IMEI {parsed.get('imei')}")
+                                mqtt_result = publish_eucaws_to_mqtt(parsed.get('imei'), eucaws_data)
+                                if isinstance(mqtt_result, dict) and mqtt_result.get('success'):
+                                    mqtt_topic = mqtt_result.get('topic')
+                                    logger.info(f"[Socket] Published to MQTT topic: {mqtt_topic}")
                             except Exception as mqtt_error:
                                 logger.error(f"[Socket] MQTT publish error: {mqtt_error}")
                     except Exception as e:
@@ -133,6 +136,7 @@ class SatelliteSocketServer:
                     relative_humidity=eucaws_data.get('relative_humidity'),
                     is_eucaws_decoded=eucaws_data.get('is_decoded', False),
                     eucaws_decode_error=eucaws_data.get('decode_error'),
+                    mqtt_topic=mqtt_topic,
                 )
                 
                 logger.info(f"[Socket] Received {len(data)} bytes from {address[0]}:{address[1]}")

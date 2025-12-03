@@ -44,6 +44,7 @@ class SatelliteData(models.Model):
     relative_humidity = models.FloatField(null=True, blank=True, help_text="Humidity in %")
     is_eucaws_decoded = models.BooleanField(default=False)
     eucaws_decode_error = models.TextField(null=True, blank=True)
+    mqtt_topic = models.CharField(max_length=255, null=True, blank=True, help_text="MQTT topic where data was published")
     
     class Meta:
         ordering = ['-timestamp']
