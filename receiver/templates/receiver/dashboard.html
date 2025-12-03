@@ -4,210 +4,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DirectIP to MQTT - Station Monitor</title>
+    <title>Met Éireann Valentia - Station Monitor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* shadcn/ui inspired dark theme - exact MIDDLEMIN colors */
+        /* Exact MIDDLEMIN color scheme */
         :root {
             --background: 222.2 84% 4.9%;
             --foreground: 210 40% 98%;
             --card: 222.2 84% 4.9%;
             --card-foreground: 210 40% 98%;
-            --popover: 222.2 84% 4.9%;
-            --popover-foreground: 210 40% 98%;
-            --primary: 210 40% 98%;
-            --primary-foreground: 222.2 84% 4.9%;
-            --secondary: 217.2 32.6% 17.5%;
-            --secondary-foreground: 210 40% 98%;
             --muted: 217.2 32.6% 17.5%;
             --muted-foreground: 215 20.2% 65.1%;
-            --accent: 217.2 32.6% 17.5%;
-            --accent-foreground: 210 40% 98%;
-            --destructive: 0 62.8% 30.6%;
-            --destructive-foreground: 210 40% 98%;
             --border: 217.2 32.6% 17.5%;
-            --input: 217.2 32.6% 17.5%;
-            --ring: 212.7 26.8% 83.9%;
         }
         
         * {
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            border-color: hsl(var(--border));
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
             background-color: hsl(var(--background));
             color: hsl(var(--foreground));
-            margin: 0;
-            padding: 0;
         }
         
         .sidebar {
-            background-color: hsl(var(--card));
-            border-right: 1px solid hsl(var(--border));
-            width: 260px;
+            background-color: hsl(222.2 84% 3.5%);
+            width: 240px;
             height: 100vh;
             position: fixed;
             left: 0;
             top: 0;
+            border-right: 1px solid hsl(var(--border));
             overflow-y: auto;
         }
         
-        .logo-container {
+        .logo-section {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 1.25rem 1rem;
+            gap: 10px;
+            padding: 1rem;
             border-bottom: 1px solid hsl(var(--border));
         }
         
-        .logo-image {
-            width: 32px;
-            height: 32px;
+        .logo-img {
+            width: 28px;
+            height: 28px;
             flex-shrink: 0;
-            object-fit: contain;
-        }
-        
-        .logo-text {
-            flex: 1;
-            min-width: 0;
         }
         
         .logo-text h2 {
-            font-size: 0.875rem;
+            font-size: 0.8125rem;
             font-weight: 600;
             color: hsl(var(--foreground));
-            line-height: 1.3;
+            line-height: 1.2;
             margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
         
         .logo-text p {
             font-size: 0.6875rem;
             color: hsl(var(--muted-foreground));
-            line-height: 1.3;
+            line-height: 1.2;
             margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
         
-        .nav-section-title {
-            color: hsl(var(--muted-foreground));
-            font-size: 0.75rem;
+        .nav-category {
+            padding: 0.75rem 1rem 0.375rem;
+            font-size: 0.6875rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 0.75rem 1rem;
-            margin-top: 0.5rem;
+            color: hsl(var(--muted-foreground));
         }
         
-        .sidebar-item {
-            color: hsl(var(--muted-foreground));
-            transition: all 0.2s;
+        .nav-item {
             display: flex;
             align-items: center;
-            padding: 0.625rem 1rem;
+            padding: 0.5rem 1rem;
+            color: hsl(var(--muted-foreground));
             text-decoration: none;
-            font-size: 0.875rem;
+            font-size: 0.8125rem;
+            transition: all 0.15s;
         }
         
-        .sidebar-item:hover {
+        .nav-item:hover {
             background-color: hsl(var(--muted));
             color: hsl(var(--foreground));
         }
         
-        .sidebar-item.active {
+        .nav-item.active {
             background-color: hsl(217 91% 60%);
             color: white;
         }
         
-        .sidebar-item i {
+        .nav-item i {
             width: 1rem;
-            margin-right: 0.75rem;
+            margin-right: 0.625rem;
+            font-size: 0.75rem;
         }
         
         .main-content {
-            margin-left: 260px;
+            margin-left: 240px;
             min-height: 100vh;
         }
         
-        .top-header {
-            background-color: hsl(var(--card));
+        .top-bar {
+            background-color: hsl(222.2 84% 3.5%);
             border-bottom: 1px solid hsl(var(--border));
             padding: 0.75rem 1.5rem;
             display: flex;
             align-items: center;
-            justify-between;
+            justify-content: space-between;
         }
         
-        .content-area {
-            padding: 1.5rem;
+        .top-bar h1 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
         }
         
-        .card {
-            background-color: hsl(var(--card));
-            border: 1px solid hsl(var(--border));
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 0.5rem;
-        }
-        
-        .status-active {
-            background-color: hsl(160 84% 39%);
-            box-shadow: 0 0 8px hsl(160 84% 39%);
-        }
-        
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.125rem 0.5rem;
-            border-radius: 0.375rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        .badge-success {
-            background-color: hsl(160 84% 39% / 0.2);
-            color: hsl(160 84% 39%);
-            border: 1px solid hsl(160 84% 39% / 0.4);
-        }
-        
-        .badge-info {
-            background-color: hsl(217 91% 60% / 0.2);
-            color: hsl(217 91% 60%);
-            border: 1px solid hsl(217 91% 60% / 0.4);
-        }
-        
-        .table-row {
-            transition: background-color 0.15s;
-        }
-        
-        .table-row:hover {
-            background-color: hsl(var(--muted));
-        }
-        
-        .refresh-control {
+        .top-bar-actions {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
+            gap: 0.75rem;
         }
         
-        .refresh-control select {
+        .top-bar-actions select {
             background-color: hsl(var(--muted));
             border: 1px solid hsl(var(--border));
             color: hsl(var(--foreground));
@@ -216,47 +144,347 @@
             font-size: 0.75rem;
         }
         
-        .refresh-control select:focus {
+        .top-bar-actions i {
+            color: hsl(var(--muted-foreground));
+            cursor: pointer;
+        }
+        
+        .content-area {
+            padding: 1.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-card {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+        }
+        
+        .stat-card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card-header h3 {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+            margin: 0;
+            flex: 1;
+        }
+        
+        .stat-card-header i {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.625rem;
+            font-size: 0.8125rem;
+        }
+        
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .stat-label {
+            color: hsl(var(--muted-foreground));
+        }
+        
+        .stat-value {
+            color: hsl(var(--foreground));
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.6875rem;
+            font-weight: 500;
+        }
+        
+        .status-badge.active {
+            background-color: hsl(160 84% 39% / 0.15);
+            color: hsl(160 84% 39%);
+            border: 1px solid hsl(160 84% 39% / 0.3);
+        }
+        
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+        
+        .two-col-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .panel {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            padding: 1rem;
+            border-bottom: 1px solid hsl(var(--border));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-header h3 {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+            margin: 0;
+        }
+        
+        .panel-header-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .panel-body {
+            padding: 1rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            background-color: hsl(217.2 32.6% 12%);
+            border: 1px solid hsl(var(--border));
+            color: hsl(var(--foreground));
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8125rem;
+            margin-bottom: 1rem;
+        }
+        
+        .search-input::placeholder {
+            color: hsl(var(--muted-foreground));
+        }
+        
+        .search-input:focus {
             outline: none;
             border-color: hsl(217 91% 60%);
+        }
+        
+        .handler-item {
+            background-color: hsl(217.2 32.6% 12%);
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .handler-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .handler-name {
+            font-size: 0.8125rem;
+            color: hsl(217 91% 60%);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .handler-meta {
+            font-size: 0.75rem;
+            color: hsl(var(--muted-foreground));
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid hsl(var(--border));
+            gap: 0.5rem;
+        }
+        
+        .tab {
+            padding: 0.625rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .tab:hover {
+            color: hsl(var(--foreground));
+        }
+        
+        .tab.active {
+            color: hsl(var(--foreground));
+            border-bottom-color: hsl(217 91% 60%);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .log-item {
+            background-color: hsl(217.2 32.6% 12%);
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .log-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .log-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.375rem;
+        }
+        
+        .log-topic {
+            font-size: 0.8125rem;
+            color: hsl(var(--foreground));
+            font-weight: 500;
+        }
+        
+        .log-meta {
+            font-size: 0.75rem;
+            color: hsl(var(--muted-foreground));
+        }
+        
+        .btn-icon {
+            background-color: transparent;
+            border: 1px solid hsl(var(--border));
+            color: hsl(var(--muted-foreground));
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.375rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .btn-icon:hover {
+            background-color: hsl(var(--muted));
+            color: hsl(var(--foreground));
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: hsl(var(--muted-foreground));
+            font-size: 0.8125rem;
         }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
     <aside class="sidebar">
-        <!-- Logo -->
-        <div class="logo-container">
-            <img src="{% static 'receiver/images/logo.png' %}" alt="Met Éireann Logo" class="logo-image">
+        <div class="logo-section">
+            <img src="{% static 'receiver/images/logo.png' %}" alt="Logo" class="logo-img">
             <div class="logo-text">
                 <h2>Met Éireann Valentia</h2>
                 <p>DirectIP to MQTT</p>
             </div>
         </div>
         
-        <!-- Navigation -->
         <nav>
-            <div class="nav-section-title">Dashboards</div>
-            <a href="#" class="sidebar-item active">
+            <div class="nav-category">Dashboards</div>
+            <a href="#" class="nav-item active">
                 <i class="fas fa-chart-bar"></i>
-                Station Monitor
+                All Stations
             </a>
             
-            <div class="nav-section-title">Stations</div>
-            <a href="#" class="sidebar-item">
+            <div class="nav-category">Stations</div>
+            <a href="#" class="nav-item">
                 <i class="fas fa-bolt"></i>
+                IOCCP
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-satellite"></i>
                 EUCAWS
             </a>
-            
-            <div class="nav-section-title">Tools</div>
-            <a href="#" class="sidebar-item">
-                <i class="fas fa-cog"></i>
-                MQTT Router
+            <a href="#" class="nav-item">
+                <i class="fas fa-water"></i>
+                AS41
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-wind"></i>
+                Picarro
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-cloud"></i>
+                AutoSol
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-ship"></i>
+                Marine
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-eye"></i>
+                Visibility
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-buoy"></i>
+                M Buoys
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-broadcast-tower"></i>
+                Transmit
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-network-wired"></i>
+                NOx
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-smog"></i>
+                SOx
             </a>
             
-            <div class="nav-section-title">System</div>
-            <a href="#" class="sidebar-item">
-                <i class="fas fa-sliders-h"></i>
+            <div class="nav-category">Tools</div>
+            <a href="#" class="nav-item">
+                <i class="fas fa-wrench"></i>
+                Maintenance
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-exchange-alt"></i>
+                MQTT Router
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-server"></i>
+                API Infrastructure
+            </a>
+            
+            <div class="nav-category">System</div>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user-shield"></i>
                 Admin Panel
             </a>
         </nav>
@@ -264,227 +492,227 @@
     
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Top Header -->
-        <header class="top-header">
-            <div>
-                <h1 style="font-size: 1.125rem; font-weight: 600; margin: 0;">Station Monitor</h1>
-            </div>
-            
-            <div class="refresh-control">
-                <span style="color: hsl(var(--muted-foreground));">Auto-refresh:</span>
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <h1>Station Monitor</h1>
+            <div class="top-bar-actions">
+                <span style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">Auto-refresh:</span>
                 <select id="refreshInterval">
                     <option value="0">Off</option>
                     <option value="10">10s</option>
                     <option value="30" selected>30s</option>
                     <option value="60">60s</option>
                 </select>
-                <span id="refreshStatus" style="color: hsl(var(--muted-foreground)); font-size: 0.75rem;"></span>
+                <span id="refreshStatus" style="font-size: 0.75rem; color: hsl(var(--muted-foreground));"></span>
+                <i class="fas fa-search"></i>
+                <i class="fas fa-bell"></i>
+                <i class="fas fa-heart"></i>
+                <i class="fas fa-user-circle"></i>
             </div>
         </header>
         
-        <!-- Content Area -->
+        <!-- Content -->
         <main class="content-area">
             <!-- Stats Grid -->
-            <div class="row g-3 mb-4">
-                <!-- Router Status Card -->
-                <div class="col-md-4">
-                    <div class="card p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 style="font-size: 0.875rem; font-weight: 500; color: hsl(var(--muted-foreground)); margin: 0;">Router Status</h3>
-                            <i class="fas fa-info-circle" style="color: hsl(var(--muted-foreground));"></i>
-                        </div>
-                        <div style="font-size: 0.875rem;">
-                            <div class="d-flex justify-between mb-2">
-                                <span style="color: hsl(var(--muted-foreground));">Connection:</span>
-                                <span style="color: hsl(var(--foreground));">Connected</span>
-                            </div>
-                            <div class="d-flex justify-between mb-2">
-                                <span style="color: hsl(var(--muted-foreground));">Running:</span>
-                                <span style="color: hsl(160 84% 39%);">
-                                    <span class="status-dot status-active"></span>Running
-                                </span>
-                            </div>
-                            <div class="d-flex justify-between mb-2">
-                                <span style="color: hsl(var(--muted-foreground));">Broker:</span>
-                                <span style="color: hsl(var(--foreground)); font-size: 0.75rem; font-family: monospace;">138.68.158.9:1883</span>
-                            </div>
-                            <div class="d-flex justify-between">
-                                <span style="color: hsl(var(--muted-foreground));">Client ID:</span>
-                                <span style="color: hsl(var(--foreground)); font-size: 0.75rem; font-family: monospace;">mqtt_router_directip</span>
-                            </div>
-                        </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h3>Router Status</h3>
+                        <span class="status-badge active">
+                            <span class="status-dot"></span>
+                            Active
+                        </span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Connection:</span>
+                        <span class="stat-value">Connected</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Running:</span>
+                        <span class="stat-value">Running</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Broker:</span>
+                        <span class="stat-value" style="font-size: 0.6875rem;">138.68.158.9:1883</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Client ID:</span>
+                        <span class="stat-value" style="font-size: 0.6875rem;">mqtt_router_37045743</span>
                     </div>
                 </div>
                 
-                <!-- Message Statistics Card -->
-                <div class="col-md-4">
-                    <div class="card p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 style="font-size: 0.875rem; font-weight: 500; color: hsl(var(--muted-foreground)); margin: 0;">Message Statistics</h3>
-                            <i class="fas fa-chart-line" style="color: hsl(var(--muted-foreground));"></i>
-                        </div>
-                        <div style="font-size: 0.875rem;">
-                            <div class="d-flex justify-between mb-2">
-                                <span style="color: hsl(var(--muted-foreground));">Received:</span>
-                                <span id="statsReceived" style="color: hsl(var(--foreground)); font-family: monospace;">{{ stats.total_packets }}</span>
-                            </div>
-                            <div class="d-flex justify-between mb-2">
-                                <span style="color: hsl(var(--muted-foreground));">Processed:</span>
-                                <span id="statsProcessed" style="color: hsl(160 84% 39%); font-family: monospace;">{{ stats.eucaws_decoded }}</span>
-                            </div>
-                            <div class="d-flex justify-between mb-2">
-                                <span style="color: hsl(var(--muted-foreground));">Failed:</span>
-                                <span id="statsFailed" style="color: hsl(0 84% 60%); font-family: monospace;">0</span>
-                            </div>
-                            <div class="d-flex justify-between">
-                                <span style="color: hsl(var(--muted-foreground));">Success Rate:</span>
-                                <span id="statsSuccessRate" style="color: hsl(var(--foreground)); font-family: monospace;">
-                                    {% if stats.total_packets > 0 %}
-                                        {% widthratio stats.eucaws_decoded stats.total_packets 100 %}%
-                                    {% else %}
-                                        0%
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h3>Message Statistics</h3>
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Received:</span>
+                        <span class="stat-value" id="statsReceived">{{ stats.total_packets }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Processed:</span>
+                        <span class="stat-value" style="color: hsl(160 84% 39%);" id="statsProcessed">{{ stats.eucaws_decoded }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Failed:</span>
+                        <span class="stat-value" style="color: hsl(0 84% 60%);">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Success Rate:</span>
+                        <span class="stat-value" id="statsSuccessRate">
+                            {% if stats.total_packets > 0 %}
+                                {% widthratio stats.eucaws_decoded stats.total_packets 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </span>
                     </div>
                 </div>
                 
-                <!-- Recent Activity Card -->
-                <div class="col-md-4">
-                    <div class="card p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 style="font-size: 0.875rem; font-weight: 500; color: hsl(var(--muted-foreground)); margin: 0;">Recent Activity</h3>
-                            <i class="fas fa-clock" style="color: hsl(var(--muted-foreground));"></i>
-                        </div>
-                        <div style="font-size: 0.875rem;">
-                            <div class="d-flex justify-between mb-2">
-                                <span style="color: hsl(var(--muted-foreground));">Last Hour:</span>
-                                <span id="statsLastHour" style="color: hsl(var(--foreground)); font-family: monospace;">0</span>
-                            </div>
-                            <div class="d-flex justify-between mb-2">
-                                <span style="color: hsl(var(--muted-foreground));">Last Message:</span>
-                                <span id="statsLastMessage" style="color: hsl(var(--foreground)); font-size: 0.75rem;">
-                                    {% if recent_packets %}
-                                        {{ recent_packets.0.timestamp|date:"m/d/Y, H:i:s" }}
-                                    {% else %}
-                                        Never
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <div class="d-flex justify-between mb-2">
-                                <span style="color: hsl(var(--muted-foreground));">Dead Letter Queue:</span>
-                                <span style="color: hsl(45 93% 47%); font-family: monospace;">0</span>
-                            </div>
-                            <div class="d-flex justify-between">
-                                <span style="color: hsl(var(--muted-foreground));">Avg Processing:</span>
-                                <span style="color: hsl(var(--foreground)); font-family: monospace;">6.53ms</span>
-                            </div>
-                        </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h3>Recent Activity</h3>
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Last Hour:</span>
+                        <span class="stat-value">60</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Last Message:</span>
+                        <span class="stat-value" style="font-size: 0.6875rem;" id="statsLastMessage">
+                            {% if recent_packets %}
+                                {{ recent_packets.0.timestamp|date:"m/d/Y, H:i" }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Dead Letter Queue:</span>
+                        <span class="stat-value" style="color: hsl(45 93% 47%);">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Avg Processing:</span>
+                        <span class="stat-value">6.53ms</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Data Table -->
-            <div class="card">
-                <div class="p-3" style="border-bottom: 1px solid hsl(var(--border));">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h2 style="font-size: 1rem; font-weight: 500; margin: 0;">Processing Log</h2>
-                        <button class="btn btn-sm" style="background-color: hsl(217 91% 60%); color: white; border: none; font-size: 0.75rem;">View All</button>
+            <!-- Two Column Grid -->
+            <div class="two-col-grid">
+                <!-- Registered Handlers -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Registered Handlers</h3>
+                        <div class="panel-header-actions">
+                            <span style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">0 handlers</span>
+                            <button class="btn-icon" title="Refresh">
+                                <i class="fas fa-sync-alt" style="font-size: 0.75rem;"></i>
+                            </button>
+                            <button class="btn-icon" title="Test">
+                                <i class="fas fa-vial" style="font-size: 0.75rem;"></i>
+                            </button>
+                            <button class="btn-icon" title="Add">
+                                <i class="fas fa-satellite-dish" style="font-size: 0.75rem;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <input type="text" class="search-input" placeholder="Search handlers...">
+                        <div id="handlersList">
+                            <div class="empty-state">
+                                <p>No handlers registered</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="table-responsive">
-                    <table class="table table-dark table-hover mb-0" style="background-color: transparent;">
-                        <thead style="background-color: hsl(var(--muted)); border-bottom: 1px solid hsl(var(--border));">
-                            <tr>
-                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Timestamp</th>
-                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">IMEI</th>
-                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Pressure</th>
-                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Sea Temp</th>
-                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Air Temp</th>
-                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">GPS</th>
-                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dataTableBody">
-                            {% for packet in recent_packets %}
-                            <tr class="table-row" style="border-bottom: 1px solid hsl(var(--border));">
-                                <td style="font-size: 0.875rem; color: hsl(var(--foreground)); padding: 1rem 0.75rem;">
-                                    {{ packet.timestamp|date:"m/d/Y, H:i:s" }}
-                                </td>
-                                <td style="padding: 1rem 0.75rem;">
-                                    {% if packet.imei %}
-                                    <span class="badge badge-info">{{ packet.imei }}</span>
-                                    {% else %}
-                                    <span style="color: hsl(var(--muted-foreground));">—</span>
-                                    {% endif %}
-                                </td>
-                                <td style="font-size: 0.875rem; padding: 1rem 0.75rem;">
-                                    {% if packet.barometric_pressure %}
-                                    <span style="color: hsl(var(--foreground));">{{ packet.barometric_pressure|floatformat:1 }} hPa</span>
-                                    {% else %}
-                                    <span style="color: hsl(var(--muted-foreground));">—</span>
-                                    {% endif %}
-                                </td>
-                                <td style="font-size: 0.875rem; padding: 1rem 0.75rem;">
-                                    {% if packet.sea_temperature %}
-                                    <span style="color: hsl(var(--foreground));">{{ packet.sea_temperature|floatformat:1 }}°C</span>
-                                    {% else %}
-                                    <span style="color: hsl(var(--muted-foreground));">—</span>
-                                    {% endif %}
-                                </td>
-                                <td style="font-size: 0.875rem; padding: 1rem 0.75rem;">
-                                    {% if packet.air_temperature %}
-                                    <span style="color: hsl(var(--foreground));">{{ packet.air_temperature|floatformat:1 }}°C</span>
-                                    {% else %}
-                                    <span style="color: hsl(var(--muted-foreground));">—</span>
-                                    {% endif %}
-                                </td>
-                                <td style="font-size: 0.75rem; color: hsl(var(--muted-foreground)); padding: 1rem 0.75rem;">
-                                    {% if packet.latitude and packet.longitude %}
-                                    {{ packet.latitude|floatformat:4 }}, {{ packet.longitude|floatformat:4 }}
-                                    {% else %}
-                                    <span>—</span>
-                                    {% endif %}
-                                </td>
-                                <td style="padding: 1rem 0.75rem;">
-                                    {% if packet.is_eucaws_decoded %}
-                                    <div class="d-flex align-items-center">
-                                        <span class="status-dot status-active"></span>
-                                        <span class="badge badge-success">Active</span>
+                <!-- Processing Log -->
+                <div class="panel">
+                    <div class="panel-header" style="padding-bottom: 0; border-bottom: none;">
+                        <div class="tabs" style="width: 100%; border-bottom: 1px solid hsl(var(--border)); margin: -1rem -1rem 0;">
+                            <button class="tab active" data-tab="log">Processing Log</button>
+                            <button class="tab" data-tab="simulation">Simulation</button>
+                            <button class="tab" data-tab="stats">Statistics History</button>
+                            <button class="tab" data-tab="dlq">Dead Letter Queue <span style="margin-left: 0.25rem; background: hsl(45 93% 47% / 0.2); color: hsl(45 93% 47%); padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.625rem;">0</span></button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div id="tabLog" class="tab-content active">
+                            <input type="text" class="search-input" placeholder="Search logs (topic, handler, error)...">
+                            <div id="logsList" style="max-height: 400px; overflow-y: auto;">
+                                {% for packet in recent_packets %}
+                                <div class="log-item">
+                                    <div class="log-header">
+                                        {% if packet.is_eucaws_decoded %}
+                                        <span class="status-dot" style="background-color: hsl(160 84% 39%);"></span>
+                                        {% else %}
+                                        <span class="status-dot" style="background-color: hsl(45 93% 47%);"></span>
+                                        {% endif %}
+                                        <span class="log-topic">valentia/weather/raw_data/telemetry</span>
                                     </div>
-                                    {% else %}
-                                    <span class="badge" style="background-color: hsl(45 93% 47% / 0.2); color: hsl(45 93% 47%); border: 1px solid hsl(45 93% 47% / 0.4);">Pending</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" style="text-align: center; padding: 3rem; color: hsl(var(--muted-foreground));">
-                                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
-                                    <p style="margin: 0;">No satellite data received yet</p>
-                                    <p style="font-size: 0.875rem; margin-top: 0.5rem;">Listening on port 7777...</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    <div class="log-meta">
+                                        manus • Success • {{ packet.timestamp|date:"m/d/Y, H:i:s" }}
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="empty-state">
+                                    <p>No processing logs</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div id="tabSimulation" class="tab-content">
+                            <div class="empty-state">
+                                <i class="fas fa-flask" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                                <p>Select a handler and click "Simulate" to test data ingestion</p>
+                            </div>
+                        </div>
+                        
+                        <div id="tabStats" class="tab-content">
+                            <div class="empty-state">
+                                <i class="fas fa-chart-area" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                                <p>Chart visualization coming soon</p>
+                            </div>
+                        </div>
+                        
+                        <div id="tabDlq" class="tab-content">
+                            <div class="empty-state">
+                                <p>No failed messages</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
     
     <script>
-        // Auto-refresh with AJAX (no page flashing)
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                
+                // Remove active from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active to clicked tab
+                this.classList.add('active');
+                document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+            });
+        });
+        
+        // Auto-refresh with AJAX
         let refreshTimer = null;
-        let refreshInterval = 30; // default 30 seconds
+        let refreshInterval = 30;
         
         function updateData() {
             fetch(window.location.href, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(response => response.text())
             .then(html => {
@@ -492,36 +720,23 @@
                 const doc = parser.parseFromString(html, 'text/html');
                 
                 // Update stats
-                const statsReceived = doc.querySelector('#statsReceived');
-                const statsProcessed = doc.querySelector('#statsProcessed');
-                const statsSuccessRate = doc.querySelector('#statsSuccessRate');
-                const statsLastMessage = doc.querySelector('#statsLastMessage');
+                ['statsReceived', 'statsProcessed', 'statsSuccessRate', 'statsLastMessage'].forEach(id => {
+                    const el = doc.querySelector('#' + id);
+                    if (el) document.querySelector('#' + id).textContent = el.textContent;
+                });
                 
-                if (statsReceived) document.querySelector('#statsReceived').textContent = statsReceived.textContent;
-                if (statsProcessed) document.querySelector('#statsProcessed').textContent = statsProcessed.textContent;
-                if (statsSuccessRate) document.querySelector('#statsSuccessRate').textContent = statsSuccessRate.textContent;
-                if (statsLastMessage) document.querySelector('#statsLastMessage').textContent = statsLastMessage.textContent;
+                // Update logs
+                const newLogs = doc.querySelector('#logsList');
+                if (newLogs) document.querySelector('#logsList').innerHTML = newLogs.innerHTML;
                 
-                // Update table
-                const newTableBody = doc.querySelector('#dataTableBody');
-                if (newTableBody) {
-                    document.querySelector('#dataTableBody').innerHTML = newTableBody.innerHTML;
-                }
-                
-                // Update refresh status
                 const now = new Date();
-                document.querySelector('#refreshStatus').textContent = `Last updated: ${now.toLocaleTimeString()}`;
+                document.querySelector('#refreshStatus').textContent = `Updated: ${now.toLocaleTimeString()}`;
             })
-            .catch(error => {
-                console.error('Error updating data:', error);
-            });
+            .catch(error => console.error('Error:', error));
         }
         
         function startRefresh() {
-            if (refreshTimer) {
-                clearInterval(refreshTimer);
-            }
-            
+            if (refreshTimer) clearInterval(refreshTimer);
             if (refreshInterval > 0) {
                 refreshTimer = setInterval(updateData, refreshInterval * 1000);
                 document.querySelector('#refreshStatus').textContent = `Refreshing every ${refreshInterval}s`;
@@ -530,16 +745,12 @@
             }
         }
         
-        // Handle refresh interval change
         document.querySelector('#refreshInterval').addEventListener('change', function(e) {
             refreshInterval = parseInt(e.target.value);
             startRefresh();
         });
         
-        // Start refresh on page load
         startRefresh();
-        
-        // Initial status
         const now = new Date();
         document.querySelector('#refreshStatus').textContent = `Loaded at ${now.toLocaleTimeString()}`;
     </script>
