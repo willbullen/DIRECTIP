@@ -86,8 +86,8 @@ class EUCAWSMQTTPublisher:
             return False
             
         try:
-            # Use IMEI directly in topic: valentia/eucaws/{IMEI}/telemetry
-            topic = f"valentia/eucaws/{imei}/telemetry" if imei else "valentia/eucaws/unknown/telemetry"
+            # Use IMEI directly in topic: valentia/eucaws/{IMEI}/observation
+            topic = f"valentia/eucaws/{imei}/observation" if imei else "valentia/eucaws/unknown/observation"
             
             # Build MQTT payload matching MIDDLEMIN format
             payload = {
@@ -110,8 +110,8 @@ class EUCAWSMQTTPublisher:
             if eucaws_data.get('air_temperature') is not None:
                 payload['air_temperature'] = float(eucaws_data['air_temperature'])
             if eucaws_data.get('sea_temperature') is not None:
-                # Note: MIDDLEMIN doesn't have sea_temperature, could add as custom field
-                pass
+                # Add sea_temperature as custom field (not in standard MIDDLEMIN spec)
+                payload['sea_surface_temperature'] = float(eucaws_data['sea_temperature'])
                 
             # Add humidity
             if eucaws_data.get('relative_humidity') is not None:
