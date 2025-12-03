@@ -410,11 +410,11 @@
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Connection:</span>
-                        <span class="stat-value">Connected</span>
+                        <span class="stat-value">{% if stats.mqtt_connected %}Connected{% else %}Disconnected{% endif %}</span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Running:</span>
-                        <span class="stat-value">Running</span>
+                        <span class="stat-value">{% if stats.mqtt_connected %}Running{% else %}Stopped{% endif %}</span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Broker:</span>
@@ -462,7 +462,7 @@
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Last Hour:</span>
-                        <span class="stat-value">{{ stats.total_packets }}</span>
+                        <span class="stat-value" id="statsLastHour">{{ stats.last_hour_count }}</span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Last Message:</span>
@@ -586,7 +586,7 @@
                 const doc = parser.parseFromString(html, 'text/html');
                 
                 // Update stats
-                ['statsReceived', 'statsProcessed', 'statsSuccessRate', 'statsLastMessage'].forEach(id => {
+                ['statsReceived', 'statsProcessed', 'statsSuccessRate', 'statsLastMessage', 'statsLastHour'].forEach(id => {
                     const el = doc.querySelector('#' + id);
                     if (el) document.querySelector('#' + id).textContent = el.textContent;
                 });

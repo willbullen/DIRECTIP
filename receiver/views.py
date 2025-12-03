@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.core.paginator import Paginator
+from django.utils import timezone
+from datetime import timedelta
 from .models import SatelliteData
+import paho.mqtt.client as mqtt
 
 
 def dashboard(request):
@@ -14,10 +17,27 @@ def dashboard(request):
     eucaws_decoded = SatelliteData.objects.filter(is_eucaws_decoded=True).count()
     unique_imeis = SatelliteData.objects.filter(imei__isnull=False).values('imei').distinct().count()
     
+    # Last hour count
+    one_hour_ago = timezone.now() - timedelta(hours=1)
+    last_hour_count = SatelliteData.objects.filter(timestamp__gte=one_hour_ago).count()
+    
+    # Check MQTT broker connection
+    mqtt_connected = False
+    try:
+        client = mqtt.Client(client_id="mqtt_status_check")
+        client.username_pw_set("admin", "B@ff1ed!2025")
+        client.connect("138.68.158.9", 1883, 5)
+        mqtt_connected = True
+        client.disconnect()
+    except Exception:
+        mqtt_connected = False
+    
     stats = {
         'total_packets': total_packets,
         'eucaws_decoded': eucaws_decoded,
         'unique_imeis': unique_imeis,
+        'last_hour_count': last_hour_count,
+        'mqtt_connected': mqtt_connected,
     }
     
     context = {
