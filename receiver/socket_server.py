@@ -83,7 +83,9 @@ class SatelliteSocketServer:
                 # Decode EUCAWS if we have a 30-byte payload
                 if eucaws_payload and len(eucaws_payload) == 30:
                     try:
-                        eucaws_data = decode_eucaws_payload(eucaws_payload)
+                        # Pass session_time for date context
+                        session_time = parsed.get('session_time')
+                        eucaws_data = decode_eucaws_payload(eucaws_payload, session_time)
                         logger.info(f"[Socket] EUCAWS decoded: {eucaws_data.get('is_decoded')}")
                         
                         # Publish to MQTT if successfully decoded
