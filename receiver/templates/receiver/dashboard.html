@@ -1,53 +1,162 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DirectIP to MQTT - Station Monitor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* shadcn/ui inspired dark theme - exact MIDDLEMIN colors */
+        :root {
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --popover: 222.2 84% 4.9%;
+            --popover-foreground: 210 40% 98%;
+            --primary: 210 40% 98%;
+            --primary-foreground: 222.2 84% 4.9%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --accent: 217.2 32.6% 17.5%;
+            --accent-foreground: 210 40% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 217.2 32.6% 17.5%;
+            --input: 217.2 32.6% 17.5%;
+            --ring: 212.7 26.8% 83.9%;
+        }
+        
         * {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border-color: hsl(var(--border));
         }
         
         body {
-            background-color: #0a0f1e;
-            color: #e2e8f0;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            margin: 0;
+            padding: 0;
         }
         
         .sidebar {
-            background-color: #0d1117;
-            border-right: 1px solid #1e293b;
+            background-color: hsl(var(--card));
+            border-right: 1px solid hsl(var(--border));
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+        
+        .logo-image {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        
+        .logo-text h2 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            line-height: 1.2;
+            margin: 0;
+        }
+        
+        .logo-text p {
+            font-size: 0.75rem;
+            color: hsl(var(--muted-foreground));
+            line-height: 1.2;
+            margin: 0;
+        }
+        
+        .nav-section-title {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.75rem 1rem;
+            margin-top: 0.5rem;
         }
         
         .sidebar-item {
-            color: #94a3b8;
+            color: hsl(var(--muted-foreground));
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            padding: 0.625rem 1rem;
+            text-decoration: none;
+            font-size: 0.875rem;
         }
         
         .sidebar-item:hover {
-            background-color: #1e293b;
-            color: #e2e8f0;
+            background-color: hsl(var(--muted));
+            color: hsl(var(--foreground));
         }
         
         .sidebar-item.active {
-            background-color: #1e40af;
-            color: #ffffff;
+            background-color: hsl(217 91% 60%);
+            color: white;
+        }
+        
+        .sidebar-item i {
+            width: 1rem;
+            margin-right: 0.75rem;
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+        
+        .top-header {
+            background-color: hsl(var(--card));
+            border-bottom: 1px solid hsl(var(--border));
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-between;
+        }
+        
+        .content-area {
+            padding: 1.5rem;
         }
         
         .card {
-            background-color: #111827;
-            border: 1px solid #1e293b;
-            border-radius: 0.5rem;
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
         }
         
-        .stat-card {
-            background: linear-gradient(135deg, #1e293b 0%, #111827 100%);
-            border: 1px solid #334155;
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        .status-active {
+            background-color: hsl(160 84% 39%);
+            box-shadow: 0 0 8px hsl(160 84% 39%);
         }
         
         .badge {
@@ -60,88 +169,53 @@
         }
         
         .badge-success {
-            background-color: #065f46;
-            color: #10b981;
-        }
-        
-        .badge-warning {
-            background-color: #78350f;
-            color: #fbbf24;
+            background-color: hsl(160 84% 39% / 0.2);
+            color: hsl(160 84% 39%);
+            border: 1px solid hsl(160 84% 39% / 0.4);
         }
         
         .badge-info {
-            background-color: #1e40af;
-            color: #60a5fa;
+            background-color: hsl(217 91% 60% / 0.2);
+            color: hsl(217 91% 60%);
+            border: 1px solid hsl(217 91% 60% / 0.4);
         }
         
-        .badge-active {
-            background-color: #065f46;
-            color: #10b981;
+        .table-row {
+            transition: background-color 0.15s;
         }
         
         .table-row:hover {
-            background-color: #1e293b;
+            background-color: hsl(var(--muted));
         }
         
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 0.5rem;
-        }
-        
-        .status-active {
-            background-color: #10b981;
-            box-shadow: 0 0 8px #10b981;
-        }
-        
-        .status-inactive {
-            background-color: #6b7280;
-        }
-        
-        .nav-section-title {
-            color: #64748b;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 0.75rem 1rem;
-        }
-        
-        .logo-container {
+        .refresh-control {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 1rem;
-            border-bottom: 1px solid #1e293b;
-        }
-        
-        .logo-image {
-            width: 40px;
-            height: 40px;
-        }
-        
-        .logo-text h2 {
+            gap: 0.5rem;
             font-size: 0.875rem;
-            font-weight: 600;
-            color: #e2e8f0;
-            line-height: 1.2;
         }
         
-        .logo-text p {
+        .refresh-control select {
+            background-color: hsl(var(--muted));
+            border: 1px solid hsl(var(--border));
+            color: hsl(var(--foreground));
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
-            color: #64748b;
-            line-height: 1.2;
+        }
+        
+        .refresh-control select:focus {
+            outline: none;
+            border-color: hsl(217 91% 60%);
         }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
+<body>
     <!-- Sidebar -->
-    <aside class="sidebar w-64 flex-shrink-0 overflow-y-auto">
+    <aside class="sidebar">
         <!-- Logo -->
         <div class="logo-container">
-            <img src="{% static 'receiver/images/logo.png' %}" alt="DirectIP Logo" class="logo-image">
+            <img src="/static/receiver/images/logo.png" alt="DirectIP Logo" class="logo-image" onerror="this.style.display='none'">
             <div class="logo-text">
                 <h2>DirectIP to MQTT</h2>
                 <p>Station Management</p>
@@ -149,177 +223,151 @@
         </div>
         
         <!-- Navigation -->
-        <nav class="py-4">
+        <nav>
             <div class="nav-section-title">Dashboards</div>
-            <a href="#" class="sidebar-item active flex items-center px-4 py-2.5 text-sm">
-                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                </svg>
+            <a href="#" class="sidebar-item active">
+                <i class="fas fa-chart-bar"></i>
                 Station Monitor
             </a>
             
-            <div class="nav-section-title mt-6">Stations</div>
-            <a href="#" class="sidebar-item flex items-center px-4 py-2.5 text-sm">
-                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
+            <div class="nav-section-title">Stations</div>
+            <a href="#" class="sidebar-item">
+                <i class="fas fa-bolt"></i>
                 EUCAWS
             </a>
             
-            <div class="nav-section-title mt-6">Tools</div>
-            <a href="#" class="sidebar-item flex items-center px-4 py-2.5 text-sm">
-                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
+            <div class="nav-section-title">Tools</div>
+            <a href="#" class="sidebar-item">
+                <i class="fas fa-cog"></i>
                 MQTT Router
             </a>
             
-            <div class="nav-section-title mt-6">System</div>
-            <a href="#" class="sidebar-item flex items-center px-4 py-2.5 text-sm">
-                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-                </svg>
+            <div class="nav-section-title">System</div>
+            <a href="#" class="sidebar-item">
+                <i class="fas fa-sliders-h"></i>
                 Admin Panel
             </a>
         </nav>
     </aside>
     
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="main-content">
         <!-- Top Header -->
-        <header class="bg-[#0d1117] border-b border-[#1e293b] px-6 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <h1 class="text-lg font-semibold text-gray-100">Station Monitor</h1>
+        <header class="top-header">
+            <div>
+                <h1 style="font-size: 1.125rem; font-weight: 600; margin: 0;">Station Monitor</h1>
             </div>
             
-            <div class="flex items-center space-x-4">
-                <button class="p-2 hover:bg-[#1e293b] rounded-lg transition-colors">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                </button>
-                <button class="p-2 hover:bg-[#1e293b] rounded-lg transition-colors">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                </button>
-                <button class="p-2 hover:bg-[#1e293b] rounded-lg transition-colors">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                    </svg>
-                </button>
-                <div class="flex items-center space-x-2 pl-4 border-l border-[#1e293b]">
-                    <div class="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                        A
-                    </div>
-                    <span class="text-sm text-gray-300">admin</span>
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </div>
+            <div class="refresh-control">
+                <span style="color: hsl(var(--muted-foreground));">Auto-refresh:</span>
+                <select id="refreshInterval">
+                    <option value="0">Off</option>
+                    <option value="10">10s</option>
+                    <option value="30" selected>30s</option>
+                    <option value="60">60s</option>
+                </select>
+                <span id="refreshStatus" style="color: hsl(var(--muted-foreground)); font-size: 0.75rem;"></span>
             </div>
         </header>
         
         <!-- Content Area -->
-        <main class="flex-1 overflow-y-auto bg-[#0a0f1e] p-6">
+        <main class="content-area">
             <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="row g-3 mb-4">
                 <!-- Router Status Card -->
-                <div class="card p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-400">Router Status</h3>
-                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Connection:</span>
-                            <span class="text-gray-200">Connected</span>
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 style="font-size: 0.875rem; font-weight: 500; color: hsl(var(--muted-foreground)); margin: 0;">Router Status</h3>
+                            <i class="fas fa-info-circle" style="color: hsl(var(--muted-foreground));"></i>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Running:</span>
-                            <span class="text-green-400 flex items-center">
-                                <span class="status-dot status-active"></span>
-                                Running
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Broker:</span>
-                            <span class="text-gray-200 text-xs">138.68.158.9:1883</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Client ID:</span>
-                            <span class="text-gray-200 text-xs">mqtt_router_37d647a9</span>
+                        <div style="font-size: 0.875rem;">
+                            <div class="d-flex justify-between mb-2">
+                                <span style="color: hsl(var(--muted-foreground));">Connection:</span>
+                                <span style="color: hsl(var(--foreground));">Connected</span>
+                            </div>
+                            <div class="d-flex justify-between mb-2">
+                                <span style="color: hsl(var(--muted-foreground));">Running:</span>
+                                <span style="color: hsl(160 84% 39%);">
+                                    <span class="status-dot status-active"></span>Running
+                                </span>
+                            </div>
+                            <div class="d-flex justify-between mb-2">
+                                <span style="color: hsl(var(--muted-foreground));">Broker:</span>
+                                <span style="color: hsl(var(--foreground)); font-size: 0.75rem; font-family: monospace;">138.68.158.9:1883</span>
+                            </div>
+                            <div class="d-flex justify-between">
+                                <span style="color: hsl(var(--muted-foreground));">Client ID:</span>
+                                <span style="color: hsl(var(--foreground)); font-size: 0.75rem; font-family: monospace;">mqtt_router_directip</span>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Message Statistics Card -->
-                <div class="card p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-400">Message Statistics</h3>
-                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Received:</span>
-                            <span class="text-gray-200 font-semibold">{{ stats.total_packets }}</span>
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 style="font-size: 0.875rem; font-weight: 500; color: hsl(var(--muted-foreground)); margin: 0;">Message Statistics</h3>
+                            <i class="fas fa-chart-line" style="color: hsl(var(--muted-foreground));"></i>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Processed:</span>
-                            <span class="text-gray-200 font-semibold">{{ stats.eucaws_decoded }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Failed:</span>
-                            <span class="text-gray-200 font-semibold">{{ stats.total_packets|add:"-"|add:stats.eucaws_decoded }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Success Rate:</span>
-                            <span class="text-green-400 font-semibold">
-                                {% if stats.total_packets > 0 %}
-                                    {% widthratio stats.eucaws_decoded stats.total_packets 100 %}%
-                                {% else %}
-                                    0%
-                                {% endif %}
-                            </span>
+                        <div style="font-size: 0.875rem;">
+                            <div class="d-flex justify-between mb-2">
+                                <span style="color: hsl(var(--muted-foreground));">Received:</span>
+                                <span id="statsReceived" style="color: hsl(var(--foreground)); font-family: monospace;">{{ stats.total_packets }}</span>
+                            </div>
+                            <div class="d-flex justify-between mb-2">
+                                <span style="color: hsl(var(--muted-foreground));">Processed:</span>
+                                <span id="statsProcessed" style="color: hsl(160 84% 39%); font-family: monospace;">{{ stats.eucaws_decoded }}</span>
+                            </div>
+                            <div class="d-flex justify-between mb-2">
+                                <span style="color: hsl(var(--muted-foreground));">Failed:</span>
+                                <span id="statsFailed" style="color: hsl(0 84% 60%); font-family: monospace;">0</span>
+                            </div>
+                            <div class="d-flex justify-between">
+                                <span style="color: hsl(var(--muted-foreground));">Success Rate:</span>
+                                <span id="statsSuccessRate" style="color: hsl(var(--foreground)); font-family: monospace;">
+                                    {% if stats.total_packets > 0 %}
+                                        {% widthratio stats.eucaws_decoded stats.total_packets 100 %}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Recent Activity Card -->
-                <div class="card p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-400">Recent Activity</h3>
-                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Last Hour:</span>
-                            <span class="text-gray-200 font-semibold">{{ stats.last_hour|default:"0" }}</span>
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 style="font-size: 0.875rem; font-weight: 500; color: hsl(var(--muted-foreground)); margin: 0;">Recent Activity</h3>
+                            <i class="fas fa-clock" style="color: hsl(var(--muted-foreground));"></i>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Last Message:</span>
-                            <span class="text-gray-200 text-xs">
-                                {% if recent_packets %}
-                                    {{ recent_packets.0.timestamp|date:"m/d/Y, H:i:s" }}
-                                {% else %}
-                                    N/A
-                                {% endif %}
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Dead Letter Queue:</span>
-                            <span class="text-gray-200 font-semibold">0</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Avg Processing:</span>
-                            <span class="text-gray-200">6.53ms</span>
+                        <div style="font-size: 0.875rem;">
+                            <div class="d-flex justify-between mb-2">
+                                <span style="color: hsl(var(--muted-foreground));">Last Hour:</span>
+                                <span id="statsLastHour" style="color: hsl(var(--foreground)); font-family: monospace;">0</span>
+                            </div>
+                            <div class="d-flex justify-between mb-2">
+                                <span style="color: hsl(var(--muted-foreground));">Last Message:</span>
+                                <span id="statsLastMessage" style="color: hsl(var(--foreground)); font-size: 0.75rem;">
+                                    {% if recent_packets %}
+                                        {{ recent_packets.0.timestamp|date:"m/d/Y, H:i:s" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-between mb-2">
+                                <span style="color: hsl(var(--muted-foreground));">Dead Letter Queue:</span>
+                                <span style="color: hsl(45 93% 47%); font-family: monospace;">0</span>
+                            </div>
+                            <div class="d-flex justify-between">
+                                <span style="color: hsl(var(--muted-foreground));">Avg Processing:</span>
+                                <span style="color: hsl(var(--foreground)); font-family: monospace;">6.53ms</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -327,130 +375,161 @@
             
             <!-- Data Table -->
             <div class="card">
-                <div class="px-6 py-4 border-b border-[#1e293b] flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <h2 class="text-base font-semibold text-gray-200">Processing Log</h2>
-                        <div class="flex items-center space-x-2">
-                            <button class="px-3 py-1 text-xs bg-[#1e293b] hover:bg-[#334155] rounded transition-colors text-gray-300">
-                                All Status
-                            </button>
-                            <button class="px-3 py-1 text-xs bg-[#1e293b] hover:bg-[#334155] rounded transition-colors text-gray-300">
-                                All Handlers
-                            </button>
-                            <button class="px-3 py-1 text-xs bg-[#1e293b] hover:bg-[#334155] rounded transition-colors text-gray-300">
-                                Newest First
-                            </button>
-                        </div>
+                <div class="p-3" style="border-bottom: 1px solid hsl(var(--border));">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 style="font-size: 1rem; font-weight: 500; margin: 0;">Processing Log</h2>
+                        <button class="btn btn-sm" style="background-color: hsl(217 91% 60%); color: white; border: none; font-size: 0.75rem;">View All</button>
                     </div>
-                    <button class="text-sm text-blue-400 hover:text-blue-300">View All</button>
                 </div>
                 
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-[#0d1117] border-b border-[#1e293b]">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0" style="background-color: transparent;">
+                        <thead style="background-color: hsl(var(--muted)); border-bottom: 1px solid hsl(var(--border));">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Timestamp</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">IMEI</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Pressure</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Sea Temp</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Air Temp</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">GPS</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Timestamp</th>
+                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">IMEI</th>
+                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Pressure</th>
+                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Sea Temp</th>
+                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Air Temp</th>
+                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">GPS</th>
+                                <th style="font-size: 0.75rem; font-weight: 600; color: hsl(var(--muted-foreground)); text-transform: uppercase; padding: 0.75rem;">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#1e293b]">
+                        <tbody id="dataTableBody">
                             {% for packet in recent_packets %}
-                            <tr class="table-row transition-colors">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            <tr class="table-row" style="border-bottom: 1px solid hsl(var(--border));">
+                                <td style="font-size: 0.875rem; color: hsl(var(--foreground)); padding: 1rem 0.75rem;">
                                     {{ packet.timestamp|date:"m/d/Y, H:i:s" }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td style="padding: 1rem 0.75rem;">
                                     {% if packet.imei %}
                                     <span class="badge badge-info">{{ packet.imei }}</span>
                                     {% else %}
-                                    <span class="text-gray-500 text-sm">—</span>
+                                    <span style="color: hsl(var(--muted-foreground));">—</span>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <td style="font-size: 0.875rem; padding: 1rem 0.75rem;">
                                     {% if packet.barometric_pressure %}
-                                    <span class="text-gray-200">{{ packet.barometric_pressure|floatformat:1 }} hPa</span>
+                                    <span style="color: hsl(var(--foreground));">{{ packet.barometric_pressure|floatformat:1 }} hPa</span>
                                     {% else %}
-                                    <span class="text-gray-500">—</span>
+                                    <span style="color: hsl(var(--muted-foreground));">—</span>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <td style="font-size: 0.875rem; padding: 1rem 0.75rem;">
                                     {% if packet.sea_temperature %}
-                                    <span class="text-gray-200">{{ packet.sea_temperature|floatformat:1 }}°C</span>
+                                    <span style="color: hsl(var(--foreground));">{{ packet.sea_temperature|floatformat:1 }}°C</span>
                                     {% else %}
-                                    <span class="text-gray-500">—</span>
+                                    <span style="color: hsl(var(--muted-foreground));">—</span>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <td style="font-size: 0.875rem; padding: 1rem 0.75rem;">
                                     {% if packet.air_temperature %}
-                                    <span class="text-gray-200">{{ packet.air_temperature|floatformat:1 }}°C</span>
+                                    <span style="color: hsl(var(--foreground));">{{ packet.air_temperature|floatformat:1 }}°C</span>
                                     {% else %}
-                                    <span class="text-gray-500">—</span>
+                                    <span style="color: hsl(var(--muted-foreground));">—</span>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-400">
+                                <td style="font-size: 0.75rem; color: hsl(var(--muted-foreground)); padding: 1rem 0.75rem;">
                                     {% if packet.latitude and packet.longitude %}
                                     {{ packet.latitude|floatformat:4 }}, {{ packet.longitude|floatformat:4 }}
                                     {% else %}
-                                    <span class="text-gray-500">—</span>
+                                    <span>—</span>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td style="padding: 1rem 0.75rem;">
                                     {% if packet.is_eucaws_decoded %}
-                                    <div class="flex items-center">
+                                    <div class="d-flex align-items-center">
                                         <span class="status-dot status-active"></span>
                                         <span class="badge badge-success">Active</span>
                                     </div>
                                     {% else %}
-                                    <span class="badge badge-warning">Pending</span>
+                                    <span class="badge" style="background-color: hsl(45 93% 47% / 0.2); color: hsl(45 93% 47%); border: 1px solid hsl(45 93% 47% / 0.4);">Pending</span>
                                     {% endif %}
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                                    </svg>
-                                    <p>No satellite data received yet</p>
-                                    <p class="text-sm mt-1">Listening on port 7777...</p>
+                                <td colspan="7" style="text-align: center; padding: 3rem; color: hsl(var(--muted-foreground));">
+                                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                                    <p style="margin: 0;">No satellite data received yet</p>
+                                    <p style="font-size: 0.875rem; margin-top: 0.5rem;">Listening on port 7777...</p>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                
-                <!-- Pagination -->
-                {% if recent_packets %}
-                <div class="px-6 py-4 border-t border-[#1e293b] flex items-center justify-between">
-                    <div class="text-sm text-gray-400">
-                        Page 1 of {{ stats.total_packets|divisibleby:20|add:1 }} ({{ stats.total_packets }} total)
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button class="px-3 py-1 text-sm bg-[#1e293b] hover:bg-[#334155] rounded transition-colors text-gray-300">
-                            Previous
-                        </button>
-                        <button class="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 rounded transition-colors text-white">
-                            Next
-                        </button>
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </main>
     </div>
     
-    <!-- Auto-refresh script -->
     <script>
-        // Auto-refresh every 5 seconds
-        setTimeout(function() {
-            location.reload();
-        }, 5000);
+        // Auto-refresh with AJAX (no page flashing)
+        let refreshTimer = null;
+        let refreshInterval = 30; // default 30 seconds
+        
+        function updateData() {
+            fetch(window.location.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Update stats
+                const statsReceived = doc.querySelector('#statsReceived');
+                const statsProcessed = doc.querySelector('#statsProcessed');
+                const statsSuccessRate = doc.querySelector('#statsSuccessRate');
+                const statsLastMessage = doc.querySelector('#statsLastMessage');
+                
+                if (statsReceived) document.querySelector('#statsReceived').textContent = statsReceived.textContent;
+                if (statsProcessed) document.querySelector('#statsProcessed').textContent = statsProcessed.textContent;
+                if (statsSuccessRate) document.querySelector('#statsSuccessRate').textContent = statsSuccessRate.textContent;
+                if (statsLastMessage) document.querySelector('#statsLastMessage').textContent = statsLastMessage.textContent;
+                
+                // Update table
+                const newTableBody = doc.querySelector('#dataTableBody');
+                if (newTableBody) {
+                    document.querySelector('#dataTableBody').innerHTML = newTableBody.innerHTML;
+                }
+                
+                // Update refresh status
+                const now = new Date();
+                document.querySelector('#refreshStatus').textContent = `Last updated: ${now.toLocaleTimeString()}`;
+            })
+            .catch(error => {
+                console.error('Error updating data:', error);
+            });
+        }
+        
+        function startRefresh() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+            }
+            
+            if (refreshInterval > 0) {
+                refreshTimer = setInterval(updateData, refreshInterval * 1000);
+                document.querySelector('#refreshStatus').textContent = `Refreshing every ${refreshInterval}s`;
+            } else {
+                document.querySelector('#refreshStatus').textContent = 'Auto-refresh disabled';
+            }
+        }
+        
+        // Handle refresh interval change
+        document.querySelector('#refreshInterval').addEventListener('change', function(e) {
+            refreshInterval = parseInt(e.target.value);
+            startRefresh();
+        });
+        
+        // Start refresh on page load
+        startRefresh();
+        
+        // Initial status
+        const now = new Date();
+        document.querySelector('#refreshStatus').textContent = `Loaded at ${now.toLocaleTimeString()}`;
     </script>
 </body>
 </html>
