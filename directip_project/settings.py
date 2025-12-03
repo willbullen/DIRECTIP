@@ -27,10 +27,10 @@ SECRET_KEY = 'django-insecure-4*5fb*k_#g94ge@$cuu8f#0v-=mwobuoa5b6vx5h@l_9kso6jm
 DEBUG = True
 
 # MQTT Configuration for EUCAWS data forwarding
-MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST', 'mqtt.metvalentia.com')
+MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST', '138.68.158.9')
 MQTT_BROKER_PORT = int(os.getenv('MQTT_BROKER_PORT', '1883'))
-MQTT_USERNAME = os.getenv('MQTT_USERNAME', 'valentia')
-MQTT_PASSWORD = os.getenv('MQTT_PASSWORD', 'valentia_mqtt_2024')
+MQTT_USERNAME = os.getenv('MQTT_USERNAME', 'admin')
+MQTT_PASSWORD = os.getenv('MQTT_PASSWORD', 'B@ff1ed!2025')
 
 ALLOWED_HOSTS = ['*']
 

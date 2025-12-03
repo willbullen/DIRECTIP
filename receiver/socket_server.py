@@ -80,6 +80,9 @@ class SatelliteSocketServer:
                     eucaws_payload = data
                     logger.info(f"[Socket] Raw 30-byte EUCAWS payload detected")
                 
+                # Initialize mqtt_topic
+                mqtt_topic = None
+                
                 # Decode EUCAWS if we have a 30-byte payload
                 if eucaws_payload and len(eucaws_payload) == 30:
                     try:
@@ -89,7 +92,6 @@ class SatelliteSocketServer:
                         logger.info(f"[Socket] EUCAWS decoded: {eucaws_data.get('is_decoded')}")
                         
                         # Publish to MQTT if successfully decoded
-                        mqtt_topic = None
                         if eucaws_data.get('is_decoded') and parsed.get('imei'):
                             try:
                                 mqtt_result = publish_eucaws_to_mqtt(parsed.get('imei'), eucaws_data)
