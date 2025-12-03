@@ -90,3 +90,74 @@ def get_stats(request):
     }
     
     return JsonResponse(data)
+
+
+def publish_to_mqtt(request, packet_id):
+    """API endpoint to manually publish a packet to MQTT"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+    
+    try:
+        from .mqtt_publisher import publish_eucaws_to_mqtt
+        
+        # Get the packet
+        packet = SatelliteData.objects.get(id=packet_id)
+        
+        # Check if it's decoded
+        if not packet.is_eucaws_decoded:
+            return JsonResponse({
+                'success': False,
+                'error': 'Packet is not decoded - cannot publish'
+            })
+        
+        # Check if we have IMEI
+        if not packet.imei:
+            return JsonResponse({
+                'success': False,
+                'error': 'No IMEI found - cannot determine topic'
+            })
+        
+        # Build EUCAWS data from packet
+        eucaws_data = {
+            'timestamp': packet.eucaws_timestamp or packet.timestamp,
+            'latitude': packet.latitude,
+            'longitude': packet.longitude,
+            'wind_speed_ms': packet.wind_speed_ms,
+            'wind_speed_knots': packet.wind_speed_knots,
+            'wind_direction': packet.wind_direction,
+            'air_temperature': packet.air_temperature,
+            'sea_temperature': packet.sea_temperature,
+            'barometric_pressure': packet.barometric_pressure,
+            'relative_humidity': packet.relative_humidity,
+            'is_decoded': packet.is_eucaws_decoded,
+        }
+        
+        # Publish to MQTT
+        result = publish_eucaws_to_mqtt(packet.imei, eucaws_data)
+        
+        if isinstance(result, dict) and result.get('success'):
+            # Update the packet with the topic
+            packet.mqtt_topic = result.get('topic')
+            packet.save(update_fields=['mqtt_topic'])
+            
+            return JsonResponse({
+                'success': True,
+                'topic': result.get('topic'),
+                'message': f'Published to {result.get("topic")}'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'MQTT publish failed'
+            })
+            
+    except SatelliteData.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Packet not found'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
