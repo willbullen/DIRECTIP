@@ -4,38 +4,75 @@
 
 This decoder handles **E-SURFMAR Format #100** payloads from EUCAWS (Enhanced Underway Coastal and Atmospheric Weather Station) maritime automatic weather stations transmitted via Iridium SBD satellite communications.
 
-The format was **reverse-engineered** from actual payload data, as the official specification is not publicly available.
+The decoder is based on the **official E-SURFMAR specification** v1.9 (2 September 2019) by Météo-France, Centre de Météorologie Marine.
+
+**Reference**: DOI: 10.5281/zenodo.1324186
 
 ## Format Details
 
-**E-SURFMAR Format #100** is a proprietary 30-byte binary format designed by Météo-France for efficient Iridium SBD transmission. It is used by EUCAWS buoys and drifters in the E-SURFMAR network.
+**E-SURFMAR Format #100** is a proprietary binary format designed for Shipborne Automated Weather Stations (S-AWS). The minimum message length is **235 bits (30 bytes)** for autonomous S-AWS without visual observations.
 
-### Decoded Fields
+### Format Structure
 
-| Field | Bytes | Formula | Confidence | Notes |
-|-------|-------|---------|------------|-------|
-| Magic Header | 0-5 | `64 80 03 fb 4c e0` | HIGH | Format identifier |
-| Hour | 6 | `(byte - 96)` if byte ≥ 96<br>`(byte - 64)` if byte < 96 | HIGH | Hour of observation (0-23) |
-| Format Version | 7 | Raw byte | HIGH | Always `0x01` |
-| Station ID | 8-11 | Hex string | HIGH | Constant: `bfd21f5d` |
-| Air Temperature | 12-13 | `(value - 45000) / 100` °C | MEDIUM | Works for some samples, needs validation |
-| Barometric Pressure | 22-23 | `(value - 27000) / 10` hPa | HIGH | Validated with multiple samples |
-| Sea Surface Temperature | 26-27 | `(value - 50000) / 100` °C | HIGH | Validated with multiple samples |
+The format uses **bit-level encoding** (not byte-aligned) with the following structure:
 
-### Unknown Fields
+1. **Green Block** (Mandatory - 235 bits / 30 bytes): Core weather observations
+2. **Yellow Block** (Optional): Visual observations (manned stations)
+3. **Blue-violet Block** (Optional): Wave observations
+4. **Pink-violet Block** (Optional): Ice observations
+5. **Orange Block** (Optional): Other sensor data
 
-The following fields have not yet been decoded:
+Each optional block starts with a 1-bit presence indicator. EUCAWS autonomous stations typically send only the Green Block.
 
-- **Wind Speed** (likely in bytes 14-15)
-- **Wind Direction** (unknown location)
-- **Relative Humidity** (unknown location)
-- **Bytes 16, 24-25** - Purpose unknown
+### Decoding Formula
 
-## Decoder Confidence Levels
+All fields follow the formula:
 
-- **HIGH**: Validated with multiple samples, produces realistic values consistently
-- **MEDIUM**: Works for some samples but not all, needs validation with known good data
-- **LOW**: Out of realistic range or inconsistent results
+```
+Physical value = (raw_value × slope) + offset
+```
+
+Missing data is indicated by all bits set to 1 for that field.
+
+### Decoded Fields (Green Block)
+
+| BUFR ID | Field | Bits | Slope | Offset | Units | Notes |
+|---------|-------|------|-------|--------|-------|-------|
+| 001198 | Format ID | 8 | 1 | 0 | - | Always 100 for S-AWS |
+| 001199 | Callsign encryption | 1 | - | - | - | 0=encrypted, 1=not encrypted |
+| 001012 | Ship's Course (COG10) | 7 | 5 | 0 | degrees | Past 10 minutes |
+| 001013 | Ship's Speed (SOG10) | 6 | 0.5 | 0 | m/s | Past 10 minutes |
+| 011104 | Ship's Heading (HDT10) | 7 | 5 | 0 | degrees | Past 10 minutes |
+| 010039 | Draft | 5 | 1 | -10 | m | Summer loadline from sea level |
+| 004001 | Year | 7 | 1 | 2000 | - | 2000-2126 |
+| 004002 | Month | 4 | 1 | 0 | - | 1-12 |
+| 004003 | Day | 6 | 1 | 0 | - | 1-31 |
+| 004004 | Hour | 5 | 1 | 0 | - | 0-23 UTC |
+| 004005 | Minute | 6 | 1 | 0 | - | 0-59 |
+| 005002 | Latitude | 15 | 0.01 | -90 | degrees | Coarse accuracy |
+| 006002 | Longitude | 16 | 0.01 | -180 | degrees | Coarse accuracy |
+| 010004 | Pressure (barometer) | 11 | 10 | 85000 | Pa | Pressure at barometer height |
+| 010051 | MSLP | 11 | 10 | 85000 | Pa | Mean sea level pressure |
+| 010061 | 3h pressure change | 10 | 10 | -5000 | Pa | Past 3 hours |
+| 010063 | Pressure tendency | 4 | 1 | 0 | code | Characteristic 0-8 |
+| 011001 | Wind direction (dd) | 7 | 5 | 0 | degrees | True wind, clockwise from north |
+| 011002 | Wind speed (ff) | 10 | 0.1 | 0 | m/s | True wind speed |
+| 011007 | Relative wind dir (RWD) | 7 | 5 | 0 | degrees | From bow |
+| 011008 | Relative wind speed (RWS) | 8 | 0.5 | 0 | m/s | Relative to ship |
+| 011041 | Max gust speed | 8 | 0.5 | 0 | m/s | Past 10 minutes |
+| 011043 | Max gust direction | 7 | 5 | 0 | degrees | Past 10 minutes |
+| 012101 | Air temperature (Ta) | 10 | 0.1 | 223.2 | K | Convert to °C: -273.15 |
+| 013009 | Relative humidity (U) | 10 | 0.1 | 0 | % | 0-100% |
+| 022043 | Sea temperature (SST) | 12 | 0.01 | 268.15 | K | Convert to °C: -273.15 |
+| 025026 | Battery voltage | 7 | 0.2 | 5.0 | V | AWS supply voltage |
+| 010201 | Processor temp | 8 | 0.5 | 233.15 | K | AWS processor temperature |
+| 010200 | GPS height | 8 | 1 | -50 | m | Above sea level |
+| - | Visual obs indicator | 1 | - | - | - | Presence of yellow block |
+| - | Wave obs indicator | 1 | - | - | - | Presence of blue-violet block |
+| - | Ice obs indicator | 1 | - | - | - | Presence of pink-violet block |
+| - | Other obs indicator | 1 | - | - | - | Presence of orange block |
+
+**Total**: 235 bits = 29.375 bytes (padded to 30 bytes)
 
 ## Usage
 
@@ -47,17 +84,20 @@ The decoder is automatically called when a 30-byte payload is received on port 7
 from receiver.eucaws_decoder import decode_eucaws_payload
 from datetime import datetime, timezone
 
-# Decode a payload
+# Decode a payload (hex string)
 payload_hex = "648003fb4ce06b01bfd21f5dd9beef9bffffffffffff97ed5fffc0f1fe00"
-payload_bytes = bytes.fromhex(payload_hex)
 session_time = datetime(2025, 12, 3, 11, 0, 15, tzinfo=timezone.utc)
 
-result = decode_eucaws_payload(payload_bytes, session_time)
+result = decode_eucaws_payload(payload_hex, session_time)
 
 print(f"Decoded: {result['is_decoded']}")
-print(f"Pressure: {result['barometric_pressure']} hPa")
-print(f"Sea temp: {result['sea_temperature']} °C")
+print(f"Timestamp: {result['timestamp']}")
+print(f"Position: {result['latitude']}, {result['longitude']}")
 print(f"Air temp: {result['air_temperature']} °C")
+print(f"Sea temp: {result['sea_temperature']} °C")
+print(f"Pressure: {result['barometric_pressure']} hPa")
+print(f"Wind: {result['wind_speed_ms']} m/s @ {result['wind_direction_true']}°")
+print(f"Humidity: {result['relative_humidity']} %")
 ```
 
 ### Reprocess Existing Data
@@ -109,48 +149,59 @@ sudo docker compose logs -f app
 
 Check the dashboard:
 ```
-http://YOUR_SERVER_IP:3010
+http://YOUR_SERVER_IP:3011
 ```
 
 ## Sample Decoded Data
 
-From actual payloads received on 2025-12-03:
+Example from actual EUCAWS transmission (2025-12-03 11:00 UTC):
 
-| Time | Pressure (hPa) | Sea Temp (°C) | Air Temp (°C) |
-|------|----------------|---------------|---------------|
-| 17:00 | 1048.5 | -0.99 | 17.78 |
-| 18:00 | 1003.7 | -1.03 | 35.71* |
-| 00:00 | 952.5 | -1.11 | N/A |
-| 07:00 | 1080.5 | -1.09 | N/A |
+```
+Payload: 648003fb4ce06b01bfd21f5dd9beef9bffffffffffff97ed5fffc0f1fe00
 
-*Air temperature value seems unrealistic and needs validation
+Decoded results:
+  Timestamp: 2025-12-03 11:00:00+00:00
+  Position: 53.30°N, 6.13°W (Valentia, Ireland)
+  Air Temperature: 10.75 °C
+  Barometric Pressure: 999.7 hPa
+  MSL Pressure: 1002.7 hPa
+  Relative Humidity: 72.5 %
+  Battery Voltage: 24.2 V
+  Wind Speed: None (missing data)
+  Sea Temperature: None (missing data)
+```
 
-## Known Issues
+Note: Some fields may show `None` when marked as missing data (all bits set to 1) in the transmission.
 
-1. **Air temperature decoding is inconsistent** - works for some samples but gives unrealistic values for others
-2. **Wind speed/direction not yet decoded** - fields identified but formula unknown
-3. **Humidity not yet decoded** - field location unknown
-4. **Some samples fail to decode** - might be corrupt data or different encoding
+## Technical Notes
 
-## Getting the Official Specification
+1. **Bit-level encoding**: The format uses bit-level fields, not byte-aligned. A BitReader class handles sequential bit extraction.
 
-For the official E-SURFMAR Format #100 specification, contact:
+2. **Missing data**: Fields with all bits set to 1 indicate missing/unavailable data. The decoder returns `None` for these fields.
 
-**E-SURFMAR Programme**  
-Météo-France  
-https://eumetnet.eu/observations/surface-marine-observations/
+3. **Temperature units**: Temperatures are encoded in Kelvin and automatically converted to Celsius by the decoder.
 
-According to WMO JCOMM SOT-8 documentation:
-> "Source codes of software necessary to convert raw data in BUFR may be freely distributed by Météo-France."
+4. **Pressure units**: Pressures are encoded in Pascals (Pa) and automatically converted to hectopascals (hPa) by the decoder.
+
+5. **Wind measurements**: According to WMO rules, wind measurements are sampled over the 10 minutes preceding the observation time.
+
+6. **Optional blocks**: EUCAWS autonomous stations typically send only the mandatory Green Block (235 bits). Visual, wave, ice, and other sensor blocks are optional and indicated by presence bits at the end of the Green Block.
 
 ## References
 
+- [E-SURFMAR recommended ship-to-shore dataformats v1.9](https://doi.org/10.5281/zenodo.1324186)
 - [E-SURFMAR Programme](https://eumetnet.eu/observations/surface-marine-observations/)
 - [EUCAWS Documentation](http://www.sterela-meteo.fr/docs/eucaws.pdf)
-- [WMO JCOMM SOT-8 Report](http://www.ioccp.org/images/D3meetingReports/JCOMM-MR-120-SOT-8-Final.pdf)
 - [Sterela Neptune Datasheet](http://www.sterela-meteo.fr/docs/neptune_datasheet.pdf)
 
 ## Version History
+
+- **v2.0** (2025-12-04): Official E-SURFMAR Format #100 implementation
+  - Based on official specification v1.9 (DOI: 10.5281/zenodo.1324186)
+  - Complete bit-level decoder with all mandatory fields
+  - Accurate formulas for all weather parameters
+  - Proper handling of missing data indicators
+  - Full support for: timestamp, position, pressure, wind, temperature, humidity, technical parameters
 
 - **v1.0** (2025-12-03): Initial reverse-engineered decoder
   - HIGH confidence: Hour, Station ID, Pressure, Sea Temperature
