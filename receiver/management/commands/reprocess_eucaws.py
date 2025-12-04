@@ -77,7 +77,8 @@ class Command(BaseCommand):
                     continue
 
                 # Decode with session_time for date context
-                eucaws_data = decode_eucaws_payload(payload_bytes, record.session_time)
+                # NEW DECODER EXPECTS HEX STRING, NOT BYTES
+                eucaws_data = decode_eucaws_payload(record.payload_hex, record.session_time)
 
                 if eucaws_data.get('is_decoded'):
                     # Update record with decoded data
@@ -85,7 +86,8 @@ class Command(BaseCommand):
                         record.eucaws_timestamp = eucaws_data.get('timestamp')
                         record.wind_speed_ms = eucaws_data.get('wind_speed_ms')
                         record.wind_speed_knots = eucaws_data.get('wind_speed_knots')
-                        record.wind_direction = eucaws_data.get('wind_direction')
+                        # Use wind_direction_true from new decoder
+                        record.wind_direction = eucaws_data.get('wind_direction_true')
                         record.air_temperature = eucaws_data.get('air_temperature')
                         record.sea_temperature = eucaws_data.get('sea_temperature')
                         record.barometric_pressure = eucaws_data.get('barometric_pressure')
