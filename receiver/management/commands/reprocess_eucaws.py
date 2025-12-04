@@ -84,6 +84,12 @@ class Command(BaseCommand):
                     # Update record with decoded data
                     if not dry_run:
                         record.eucaws_timestamp = eucaws_data.get('timestamp')
+                        # Update position data
+                        if eucaws_data.get('latitude') is not None:
+                            record.latitude = eucaws_data.get('latitude')
+                        if eucaws_data.get('longitude') is not None:
+                            record.longitude = eucaws_data.get('longitude')
+                        # Update weather data
                         record.wind_speed_ms = eucaws_data.get('wind_speed_ms')
                         record.wind_speed_knots = eucaws_data.get('wind_speed_knots')
                         # Use wind_direction_true from new decoder
