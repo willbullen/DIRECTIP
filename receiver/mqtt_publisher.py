@@ -100,11 +100,11 @@ class EUCAWSMQTTPublisher:
             if eucaws_data.get('longitude') is not None:
                 payload['longitude'] = float(eucaws_data['longitude'])
                 
-            # Add wind data
+            # Add wind data (use wind_direction_true from new decoder)
             if eucaws_data.get('wind_speed_ms') is not None:
                 payload['wind_speed'] = float(eucaws_data['wind_speed_ms'])
-            if eucaws_data.get('wind_direction') is not None:
-                payload['wind_direction'] = int(eucaws_data['wind_direction'])
+            if eucaws_data.get('wind_direction_true') is not None:
+                payload['wind_direction'] = int(eucaws_data['wind_direction_true'])
                 
             # Add temperature data
             if eucaws_data.get('air_temperature') is not None:

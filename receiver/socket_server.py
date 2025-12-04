@@ -87,8 +87,9 @@ class SatelliteSocketServer:
                 if eucaws_payload and len(eucaws_payload) == 30:
                     try:
                         # Pass session_time for date context
+                        # NEW DECODER EXPECTS HEX STRING, NOT BYTES
                         session_time = parsed.get('session_time')
-                        eucaws_data = decode_eucaws_payload(eucaws_payload, session_time)
+                        eucaws_data = decode_eucaws_payload(eucaws_payload.hex(), session_time)
                         logger.info(f"[Socket] EUCAWS decoded: {eucaws_data.get('is_decoded')}")
                         
                         # Publish to MQTT if successfully decoded
@@ -127,11 +128,11 @@ class SatelliteSocketServer:
                     payload_hex=parsed.get('payload_hex'),
                     is_parsed=parsed.get('is_parsed', False),
                     parse_error=parsed.get('parse_error'),
-                    # EUCAWS weather fields
+                    # EUCAWS weather fields (use wind_direction_true from new decoder)
                     eucaws_timestamp=eucaws_data.get('timestamp'),
                     wind_speed_ms=eucaws_data.get('wind_speed_ms'),
                     wind_speed_knots=eucaws_data.get('wind_speed_knots'),
-                    wind_direction=eucaws_data.get('wind_direction'),
+                    wind_direction=eucaws_data.get('wind_direction_true'),
                     air_temperature=eucaws_data.get('air_temperature'),
                     sea_temperature=eucaws_data.get('sea_temperature'),
                     barometric_pressure=eucaws_data.get('barometric_pressure'),

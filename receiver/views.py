@@ -118,13 +118,14 @@ def publish_to_mqtt(request, packet_id):
             })
         
         # Build EUCAWS data from packet
+        # Note: wind_direction in DB is stored from wind_direction_true in decoder
         eucaws_data = {
             'timestamp': packet.eucaws_timestamp or packet.timestamp,
             'latitude': packet.latitude,
             'longitude': packet.longitude,
             'wind_speed_ms': packet.wind_speed_ms,
             'wind_speed_knots': packet.wind_speed_knots,
-            'wind_direction': packet.wind_direction,
+            'wind_direction_true': packet.wind_direction,  # DB field maps to wind_direction_true
             'air_temperature': packet.air_temperature,
             'sea_temperature': packet.sea_temperature,
             'barometric_pressure': packet.barometric_pressure,
