@@ -94,11 +94,11 @@ class EUCAWSMQTTPublisher:
                 "observation_time": eucaws_data.get('timestamp').isoformat() if eucaws_data.get('timestamp') else datetime.utcnow().isoformat() + 'Z',
             }
             
-            # Add location if available
+            # Add location if available (round to 6 decimal places for GPS precision)
             if eucaws_data.get('latitude') is not None:
-                payload['latitude'] = float(eucaws_data['latitude'])
+                payload['latitude'] = round(float(eucaws_data['latitude']), 6)
             if eucaws_data.get('longitude') is not None:
-                payload['longitude'] = float(eucaws_data['longitude'])
+                payload['longitude'] = round(float(eucaws_data['longitude']), 6)
                 
             # Add wind data (use wind_direction_true from new decoder)
             if eucaws_data.get('wind_speed_ms') is not None:
